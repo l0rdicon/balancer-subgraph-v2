@@ -25,7 +25,7 @@ Each Balancer pool is referenced by its own unique pool ID. This ID contains var
 Sample code that calculates a pool's address from it's pool ID to allow approving another address to move the user's BPT:
 
 ```typescript
-import { getPoolAddress } from "@balancer-labs/balancer-js";
+import { getPoolAddress } from "@balancer-labs/ balancer-js";
 import { IERC20Abi } from ./IERC20.json
 
 const poolId = "0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014"
