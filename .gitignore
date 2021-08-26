@@ -108,7 +108,7 @@ cache/
 /artifacts/
 
 # only typescript is allowed
-*.js
+#*.js
 
 !.eslintrc.js
 
