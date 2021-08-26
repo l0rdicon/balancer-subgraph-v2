@@ -28,6 +28,8 @@ const CHAIN_IDS = {
   rinkeby: 4,
   ropsten: 3,
   dockerParity: 17,
+  fuji: 43113,
+  avalanche: 43114,
 };
 
 const INFURA_KEY = process.env.INFURA_KEY || '';
@@ -95,6 +97,12 @@ export default {
       accounts: [`0x${DEPLOYER_PRIVATE_KEY}`, `0x${CONTROLLER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
       saveDeployments: true,
     },
+    fuji: {
+      chainId: CHAIN_IDS.fuji,
+      url: `https://api.avax-test.network/ext/bc/C/rpc`,
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`, `0x${CONTROLLER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
+      saveDeployments: true,
+    },
   },
   namedAccounts: {
     deployer: {
@@ -107,6 +115,8 @@ export default {
       [CHAIN_IDS.polygon]: 0,
       [CHAIN_IDS.polygonMumbai]: 0,
       [CHAIN_IDS.dockerParity]: 0,
+      [CHAIN_IDS.fuji]: 0,
+      [CHAIN_IDS.avalanche]: 0,
     },
     admin: {
       default: 1, // here this will by default take the first account as deployer
@@ -119,6 +129,8 @@ export default {
       [CHAIN_IDS.polygon]: 1,
       [CHAIN_IDS.polygonMumbai]: 1,
       [CHAIN_IDS.dockerParity]: 1,
+      [CHAIN_IDS.fuji]: '0xd3F32d840f684061eEB2B6c6B78cA346C3fe0030',
+      [CHAIN_IDS.avalanche]: '0xd3F32d840f684061eEB2B6c6B78cA346C3fe0030',
     },
   },
   solidity: {
@@ -152,11 +164,25 @@ export default {
           },
         },
       },
+      'contracts/avax/VaultAvax.sol': {
+        version: '0.7.1',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1500,
+          },
+        },
+      },
+      'contracts/avax/WeightedPoolFactoryAvax.sol': {
+        version: '0.7.1',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 800,
+          },
+        },
+      },
     },
-  },
-  tenderly: {
-    username: 'balancer',
-    project: 'v2',
   },
   paths: {
     deploy: 'deployments/migrations',

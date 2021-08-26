@@ -8,9 +8,9 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
 
   const chainId = await getChainId();
 
-  const vault = await deployments.get('Vault');
-
   if (chainId == '31337') {
+    const vault = await deployments.get('Vault');
+
     await deploy('MockFlashLoanRecipient', {
       from: deployer,
       args: [vault.address],
