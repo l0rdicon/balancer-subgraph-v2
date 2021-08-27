@@ -100,10 +100,16 @@ export default {
     fuji: {
       chainId: CHAIN_IDS.fuji,
       url: `https://api.avax-test.network/ext/bc/C/rpc`,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`, `0x${CONTROLLER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
+      accounts: [
+        `0x${DEPLOYER_PRIVATE_KEY}`,
+        `0x${CONTROLLER_PRIVATE_KEY}`,
+        `0x${CONTROLLER_PRIVATE_KEY}`,
+        `0x${CONTROLLER_PRIVATE_KEY}`,
+      ], // Using private key instead of mnemonic for vanity deploy
       saveDeployments: true,
     },
   },
+  // [deployer, controller, trader, assetManager]
   namedAccounts: {
     deployer: {
       default: 0,
@@ -117,6 +123,15 @@ export default {
       [CHAIN_IDS.dockerParity]: 0,
       [CHAIN_IDS.fuji]: 0,
       [CHAIN_IDS.avalanche]: 0,
+    },
+    controller: {
+      [CHAIN_IDS.fuji]: 0,
+    },
+    trader: {
+      [CHAIN_IDS.fuji]: 0,
+    },
+    assetManager: {
+      [CHAIN_IDS.fuji]: 0,
     },
     admin: {
       default: 1, // here this will by default take the first account as deployer

@@ -15,11 +15,12 @@ export async function deployTokens(
 ): Promise<TokenList> {
   const tokenSymbols: TokenList = {};
   for (let i = 0; i < symbols.length; i++) {
-    if (symbols[i] === 'WETH') {
+    /*if (symbols[i] === 'WETH') {
       tokenSymbols[symbols[i]] = await deploy('WETH9', { from, args: [from ? from.address : ZERO_ADDRESS] });
     } else {
       tokenSymbols[symbols[i]] = await deployToken(symbols[i], decimals[i], from);
-    }
+    }*/
+    tokenSymbols[symbols[i]] = await deployToken(symbols[i], decimals[i], from);
   }
   return tokenSymbols;
 }

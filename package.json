@@ -44,6 +44,7 @@
     "seed:rinkeby": "hardhat --network rinkeby seed",
     "seed:goerli": "hardhat --network goerli seed",
     "seed:hardhat": "hardhat --network hardhat seed",
+    "seed:fuji": "hardhat --network fuji seed",
     "redeploy:docker": "yarn hardhat clean && yarn deploy:docker --reset && yarn seed:docker",
     "export": "hardhat export --export-all deployments/addresses.json",
     "lint": "yarn lint:solidity && yarn lint:typescript",
