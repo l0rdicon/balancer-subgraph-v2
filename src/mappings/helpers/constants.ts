@@ -22,6 +22,8 @@ export class AddressByNetwork {
   public rinkeby: string;
   public polygon: string;
   public fuji: string;
+  public opera: string;
+  public ftmTestnet: string;
   public dev: string;
 }
 
@@ -35,6 +37,8 @@ let vaultAddressByNetwork: AddressByNetwork = {
   polygon: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
   fuji: '0x99DFAd1c64edBab922C0b9a490212a1fF53a04b6',
   dev: '0xa0B05b20e511B1612E908dFCeE0E407E22B76028',
+  opera: '0x20dd72Ed959b6147912C2e529F0a0C651c33c9ce',
+  ftmTestnet: '0x974D3FF709D84Ba44cde3257C0B5B0b14C081Ce9',
 };
 
 let wethAddressByNetwork: AddressByNetwork = {
@@ -45,6 +49,8 @@ let wethAddressByNetwork: AddressByNetwork = {
   polygon: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
   fuji: '0xfBD49f16d9fc6566aE41C20026DDCf3bADb6ba9F',
   dev: '0x4CDDb3505Cf09ee0Fa0877061eB654839959B9cd',
+  opera: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+  ftmTestnet: '0x80dD2B80FbcFB06505A301d732322e987380EcD6',
 };
 
 let wbtcAddressByNetwork: AddressByNetwork = {
@@ -55,6 +61,8 @@ let wbtcAddressByNetwork: AddressByNetwork = {
   polygon: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
   fuji: '0x9d78950bc4C531D32C3F874120F0B96213D81DFC',
   dev: '0xcD80986f08d776CE41698c47f705CDc99dDBfB0A',
+  opera: '0x321162Cd933E2Be498Cd2267a90534A804051b11',
+  ftmTestnet: '0x60467cb225092cE0c989361934311175f437Cf53',
 };
 
 let usdAddressByNetwork: AddressByNetwork = {
@@ -65,6 +73,8 @@ let usdAddressByNetwork: AddressByNetwork = {
   polygon: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
   fuji: '0x0a35823b2C0a025D97e4002aec5038b96087942D',
   dev: '0x1528f3fcc26d13f7079325fb78d9442607781c8c',
+  opera: '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
+  ftmTestnet: '0x92b377187bcCC6556FceD2f1e6DAd65850C20630',
 };
 
 let usdcAddressByNetwork: AddressByNetwork = {
@@ -75,6 +85,8 @@ let usdcAddressByNetwork: AddressByNetwork = {
   polygon: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
   fuji: '0x0a35823b2C0a025D97e4002aec5038b96087942D',
   dev: '0x7c0c5AdA758cf764EcD6bAC05b63b2482f90bBB2',
+  opera: '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
+  ftmTestnet: '0x92b377187bcCC6556FceD2f1e6DAd65850C20630',
 };
 
 let balAddressByNetwork: AddressByNetwork = {
@@ -85,6 +97,8 @@ let balAddressByNetwork: AddressByNetwork = {
   polygon: '0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3',
   fuji: '0x9c2eE4065F5BcaF2220c6eA788829eEd80aec503',
   dev: '0xf702269193081364E355f862f2CFbFCdC5DB738C',
+  opera: '', //TODO: BEETS token?
+  ftmTestnet: '0x40D26F06DefEe453bCFCAa61Badb16883E4ee26C',
 };
 
 let daiAddressByNetwork: AddressByNetwork = {
@@ -95,6 +109,8 @@ let daiAddressByNetwork: AddressByNetwork = {
   polygon: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
   fuji: '0x510CD68b4Bdd8cd2fd6e93afe368F0F4e17791F8',
   dev: '0x5C0E66606eAbEC1df45E2ADd26C5DF8C0895a397',
+  opera: '0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e',
+  ftmTestnet: '0xb4761d0481B4f7a8A858D2796eEF3DAa2f3D9D2c',
 };
 
 function forNetwork(addressByNetwork: AddressByNetwork, network: string): Address {
@@ -110,6 +126,10 @@ function forNetwork(addressByNetwork: AddressByNetwork, network: string): Addres
     return Address.fromString(addressByNetwork.polygon);
   } else if (network == 'fuji') {
     return Address.fromString(addressByNetwork.fuji);
+  } else if (network == 'opera') {
+    return Address.fromString(addressByNetwork.opera);
+  } else if (network == 'ftmTestnet') {
+    return Address.fromString(addressByNetwork.ftmTestnet);
   } else {
     return Address.fromString(addressByNetwork.dev);
   }
