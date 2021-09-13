@@ -13,7 +13,7 @@
     "deploy:local": "graph deploy balancer-labs/balancer-v2 subgraph.dockerParity.yaml --debug --ipfs http://localhost:5001 --node http://127.0.0.1:8020",
     "deploy:fuji": "graph deploy beethovenx subgraph.fuji.yaml",
     "deploy:fantom": "graph deploy beethovenx subgraph.fantom.yaml",
-    "deploy:rinkeby": "graph deploy beethovenx subgraph.rinkeby.yaml",
+    "deploy:rinkeby": "graph deploy beethovenx-rinkeby subgraph.rinkeby.yaml",
     "import-abis": "tsc ./scripts/update-abis.ts && node ./scripts/update-abis.js",
     "update-addresses": "tsc ./scripts/update-addresses-subgraph.ts && node ./scripts/update-addresses-subgraph.js",
     "update-addresses:kovan": "tsc ./scripts/update-addresses-subgraph.ts && node ./scripts/update-addresses-subgraph.js kovan",

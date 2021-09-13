@@ -8,9 +8,9 @@ dataSources:
     name: Vault
     network: rinkeby
     source:
-      address: '0x6732d651EeA0bc98FcF4EFF8B62e0CdCB0064f4b'
+      address: '0xF07513C68C55A31337E3b58034b176A15Dce16eD'
       abi: Vault
-      startBlock: 9285365
+      startBlock: 9286236
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -43,9 +43,9 @@ dataSources:
     name: WeightedPoolFactory
     network: rinkeby
     source:
-      address: '0x09523Acc78Dd297Ae5Da00DdeBE6f10ebF784565'
+      address: '0x72F700b6e33aB2db1b915E06b99D7Ab913748380'
       abi: WeightedPoolFactory
-      startBlock: 9285411
+      startBlock: 9286282
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -70,9 +70,9 @@ dataSources:
     name: WeightedPool2TokenFactory
     network: rinkeby
     source:
-      address: '0x548e2f8114DDf1c796C37e83D26db9b1cf215a62'
+      address: '0xf2955E1663A281E7cff697a6F0213ad09914f3dF'
       abi: WeightedPoolFactory
-      startBlock: 9285415
+      startBlock: 9286502
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -97,9 +97,9 @@ dataSources:
     name: StablePoolFactory
     network: rinkeby
     source:
-      address: '0xdE76434352633349f119bcE523d092743fEF20E9'
+      address: '0x73bf10fB8867F5687d0C7590d0aE2B4beBCC85fd'
       abi: StablePoolFactory
-      startBlock: 9285434
+      startBlock: 9286507
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -124,9 +124,9 @@ dataSources:
     name: MetaStablePoolFactory
     network: rinkeby
     source:
-      address: '0xfE18C7C70b0a2c6541bEde0367124278BC345Dc8'
+      address: '0xf63193Af8114855c872BC85ED9a10dD66Fc9a290'
       abi: MetaStablePoolFactory
-      startBlock: 9285453
+      startBlock: 9286747
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -151,9 +151,9 @@ dataSources:
     name: LiquidityBootstrappingPoolFactory
     network: rinkeby
     source:
-      address: '0x9Fa8A5977EF1d852602AE1960971D7ac0f0aaa1a'
+      address: '0x18569fE90F773B1578478259727da4605Bc4720A'
       abi: LiquidityBootstrappingPoolFactory
-      startBlock: 9285445
+      startBlock: 9286514
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
