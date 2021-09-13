@@ -6,7 +6,7 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Vault
-    network: opera
+    network: fantom
     source:
       address: "0x20dd72Ed959b6147912C2e529F0a0C651c33c9ce"
       abi: Vault
@@ -41,7 +41,7 @@ dataSources:
           handler: handleInternalBalanceChange
   - kind: ethereum/contract
     name: WeightedPoolFactory
-    network: opera
+    network: fantom
     source:
       address: "0x60467cb225092cE0c989361934311175f437Cf53"
       abi: WeightedPoolFactory
@@ -68,7 +68,7 @@ dataSources:
           handler: handleNewWeightedPool
   - kind: ethereum/contract
     name: StablePoolFactory
-    network: opera
+    network: fantom
     source:
       address: '0x55df810876354Fc3e249f701Dd78DeDE57991F8D'
       abi: StablePoolFactory
@@ -95,7 +95,7 @@ dataSources:
           handler: handleNewStablePool
   # - kind: ethereum/contract
   #   name: LiquidityBootstrappingPoolFactory
-  #   network: opera
+  #   network: fantom
   #   source:
   #     address: '0x751A0bC0e3f75b38e01Cf25bFCE7fF36DE1C87DE'
   #     abi: LiquidityBootstrappingPoolFactory
@@ -123,7 +123,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: WeightedPool
-    network: opera
+    network: fantom
     source:
       abi: WeightedPool
     mapping:
@@ -148,7 +148,7 @@ templates:
           handler: handleSwapFeePercentageChange
   - kind: ethereum/contract
     name: StablePool
-    network: opera
+    network: fantom
     source:
       abi: StablePool
     mapping:
@@ -175,7 +175,7 @@ templates:
           handler: handleSwapFeePercentageChange
   # - kind: ethereum/contract
   #   name: LiquidityBootstrappingPool
-  #   network: opera
+  #   network: fantom
   #   source:
   #     abi: LiquidityBootstrappingPool
   #   mapping:
