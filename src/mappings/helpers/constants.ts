@@ -33,7 +33,7 @@ let vaultAddressByNetwork: AddressByNetwork = {
   goerli: '0x65748E8287Ce4B9E6D83EE853431958851550311',
   rinkeby: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
   polygon: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-  fuji: '0x97fd63D049089cd70D9D139ccf9338c81372DE68',
+  fuji: '0x99DFAd1c64edBab922C0b9a490212a1fF53a04b6',
   dev: '0xa0B05b20e511B1612E908dFCeE0E407E22B76028',
 };
 
@@ -43,7 +43,7 @@ let wethAddressByNetwork: AddressByNetwork = {
   goerli: '0x9A1000D492d40bfccbc03f413A48F5B6516Ec0Fd',
   rinkeby: '0xdFCeA9088c8A88A76FF74892C1457C17dfeef9C1',
   polygon: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-  fuji: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  fuji: '0xfBD49f16d9fc6566aE41C20026DDCf3bADb6ba9F',
   dev: '0x4CDDb3505Cf09ee0Fa0877061eB654839959B9cd',
 };
 
@@ -53,7 +53,7 @@ let wbtcAddressByNetwork: AddressByNetwork = {
   goerli: '0x78dEca24CBa286C0f8d56370f5406B48cFCE2f86',
   rinkeby: '0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8',
   polygon: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
-  fuji: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+  fuji: '0x9d78950bc4C531D32C3F874120F0B96213D81DFC',
   dev: '0xcD80986f08d776CE41698c47f705CDc99dDBfB0A',
 };
 
@@ -63,7 +63,7 @@ let usdAddressByNetwork: AddressByNetwork = {
   goerli: '0x78dEca24CBa286C0f8d56370f5406B48cFCE2f86',
   rinkeby: '0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8',
   polygon: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-  fuji: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  fuji: '0x0a35823b2C0a025D97e4002aec5038b96087942D',
   dev: '0x1528f3fcc26d13f7079325fb78d9442607781c8c',
 };
 
@@ -73,7 +73,7 @@ let usdcAddressByNetwork: AddressByNetwork = {
   goerli: '0x78dEca24CBa286C0f8d56370f5406B48cFCE2f86',
   rinkeby: '0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8',
   polygon: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-  fuji: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  fuji: '0x0a35823b2C0a025D97e4002aec5038b96087942D',
   dev: '0x7c0c5AdA758cf764EcD6bAC05b63b2482f90bBB2',
 };
 
@@ -83,7 +83,7 @@ let balAddressByNetwork: AddressByNetwork = {
   goerli: '0x78dEca24CBa286C0f8d56370f5406B48cFCE2f86',
   rinkeby: '0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8',
   polygon: '0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3',
-  fuji: '0xba100000625a3754423978a60c9317c58a424e3D',
+  fuji: '0x9c2eE4065F5BcaF2220c6eA788829eEd80aec503',
   dev: '0xf702269193081364E355f862f2CFbFCdC5DB738C',
 };
 
@@ -93,7 +93,7 @@ let daiAddressByNetwork: AddressByNetwork = {
   goerli: '0x78dEca24CBa286C0f8d56370f5406B48cFCE2f86',
   rinkeby: '0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8',
   polygon: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
-  fuji: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+  fuji: '0x510CD68b4Bdd8cd2fd6e93afe368F0F4e17791F8',
   dev: '0x5C0E66606eAbEC1df45E2ADd26C5DF8C0895a397',
 };
 

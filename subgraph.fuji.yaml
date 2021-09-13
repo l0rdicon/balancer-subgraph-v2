@@ -8,9 +8,9 @@ dataSources:
     name: Vault
     network: fuji
     source:
-      address: "0x97fd63D049089cd70D9D139ccf9338c81372DE68"
+      address: "0x99DFAd1c64edBab922C0b9a490212a1fF53a04b6"
       abi: Vault
-      startBlock: 873372
+      startBlock: 881952
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -43,9 +43,9 @@ dataSources:
     name: WeightedPoolFactory
     network: fuji
     source:
-      address: "0xC0BF43A4Ca27e0976195E6661b099742f10507e5"
+      address: "0x3582C64a66Ac068851E9c912eAc5c855DbE2b1E1"
       abi: WeightedPoolFactory
-      startBlock: 873373
+      startBlock: 881963
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -70,9 +70,9 @@ dataSources:
     name: StablePoolFactory
     network: fuji
     source:
-      address: '0x43cA9bAe8dF108684E5EAaA720C25e1b32B0A075'
+      address: '0x4928DcC463f329BdDB7159aEDE6cdc7Fb72349A3'
       abi: StablePoolFactory
-      startBlock: 873375
+      startBlock: 882672
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
