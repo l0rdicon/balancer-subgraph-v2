@@ -47,7 +47,7 @@ let wethAddressByNetwork: AddressByNetwork = {
   polygon: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
   fuji: '0xfBD49f16d9fc6566aE41C20026DDCf3bADb6ba9F',
   dev: '0x4CDDb3505Cf09ee0Fa0877061eB654839959B9cd',
-  fantom: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+  fantom: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', //WFTM
 };
 
 let wbtcAddressByNetwork: AddressByNetwork = {
