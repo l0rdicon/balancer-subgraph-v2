@@ -23,7 +23,8 @@
     "update-addresses:local": "tsc ./scripts/update-addresses-subgraph.ts && node ./scripts/update-addresses-subgraph.js dockerParity",
     "sync": "yarn import-abis && yarn update-addresses && yarn codegen && yarn build",
     "sync:kovan": "yarn import-abis && yarn update-addresses kovan && yarn codegen && yarn build",
-    "sync:local": "yarn import-abis && yarn update-addresses dockerParity && yarn codegen && yarn build"
+    "sync:local": "yarn import-abis && yarn update-addresses dockerParity && yarn codegen && yarn build",
+    "deploy:testgraph": "graph deploy testgraph subgraph.fantom.yaml --ipfs http://localhost:5001/ --node http://localhost:8020/"
   },
   "devDependencies": {
     "@apollo/client": "^3.3.9",
