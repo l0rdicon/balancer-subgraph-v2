@@ -9,18 +9,10 @@ type Balancer @entity {
   totalSwapFee: BigDecimal!
 }
 
-enum PoolType {
-  Weighted
-  Stable
-  MetaStable
-  Element
-  LiquidityBootstrapping
-}
-
 type Pool @entity {
   id: ID!
   address: Bytes!
-  poolType: PoolType
+  poolType: String
   factory: Bytes
   strategyType: Int!
   symbol: String
@@ -63,24 +55,25 @@ type Pool @entity {
   baseToken: Bytes
   expiryTime: BigInt
   unitSeconds: BigInt
+
+  # InvestmentPool Only
+  managementFee: BigDecimal
 }
 
 type PoolToken @entity {
   id: ID!
   poolId: Pool!
-  symbol: String
-  name: String
+  symbol: String!
+  name: String!
   decimals: Int!
   address: String!
+  priceRate: BigDecimal!
   balance: BigDecimal!
   invested: BigDecimal!
   investments: [Investment!] @derivedFrom(field: "poolTokenId")
 
   # WeightedPool Only
   weight: BigDecimal
-
-  # MetaStablePool Only
-  priceRate: BigDecimal
 }
 
 type PriceRateProvider @entity {
@@ -184,7 +177,7 @@ type TokenPrice @entity {
   pricingAsset: Bytes! # address of stable asset
   price: BigDecimal!
   block: BigInt!
-  timestamp: BigInt!
+  timestamp: Int!
 }
 
 type Investment @entity {

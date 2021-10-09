@@ -13,7 +13,7 @@ dataSources:
       startBlock: 24226726
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/vault.ts
       entities:
@@ -22,7 +22,6 @@ dataSources:
         - PoolToken
         - User
         - UserInternalBalance
-        - PoolTokenizer
       abis:
         - name: Vault
           file: ./abis/Vault.json
@@ -48,7 +47,7 @@ dataSources:
       startBlock: 24226729
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolFactory.ts
       entities:
@@ -75,7 +74,7 @@ dataSources:
       startBlock: 24226729
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolFactory.ts
       entities:
@@ -102,7 +101,7 @@ dataSources:
       startBlock: 25266622
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolFactory.ts
       entities:
@@ -129,7 +128,7 @@ dataSources:
       startBlock: 26467363
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolFactory.ts
       entities:
@@ -142,6 +141,8 @@ dataSources:
           file: ./abis/ERC20.json
         - name: MetaStablePoolFactory
           file: ./abis/MetaStablePoolFactory.json
+        - name: StablePool
+          file: ./abis/StablePool.json
         - name: MetaStablePool
           file: ./abis/MetaStablePool.json
       eventHandlers:
@@ -156,7 +157,7 @@ dataSources:
       startBlock: 26275220
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolFactory.ts
       entities:
@@ -171,9 +172,40 @@ dataSources:
           file: ./abis/WeightedPool.json
         - name: LiquidityBootstrappingPoolFactory
           file: ./abis/LiquidityBootstrappingPoolFactory.json
+        - name: LiquidityBootstrappingPool
+          file: ./abis/LiquidityBootstrappingPool.json
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handleNewLiquidityBootstrappingPool
+  - kind: ethereum/contract
+    name: InvestmentPoolFactory
+    network: kovan
+    source:
+      address: '0xb08E16cFc07C684dAA2f93C70323BAdb2A6CBFd2'
+      abi: InvestmentPoolFactory
+      startBlock: 27098599
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/poolFactory.ts
+      entities:
+        - Balancer
+        - Pool
+      abis:
+        - name: Vault
+          file: ./abis/Vault.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: WeightedPool
+          file: ./abis/WeightedPool.json
+        - name: InvestmentPoolFactory
+          file: ./abis/InvestmentPoolFactory.json
+        - name: InvestmentPool
+          file: ./abis/InvestmentPool.json
+      eventHandlers:
+        - event: PoolCreated(indexed address)
+          handler: handleNewInvestmentPool
 templates:
   - kind: ethereum/contract
     name: WeightedPool
@@ -182,7 +214,7 @@ templates:
       abi: WeightedPool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolController.ts
       entities:
@@ -207,7 +239,7 @@ templates:
       abi: StablePool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolController.ts
       entities:
@@ -216,10 +248,10 @@ templates:
         - Swap
         - PoolToken
       abis:
+        - name: WeightedPool # Necessary for Transfer handler
+          file: ./abis/WeightedPool.json
         - name: StablePool
           file: ./abis/StablePool.json
-        - name: WeightedPool
-          file: ./abis/WeightedPool.json
         - name: BalancerPoolToken
           file: ./abis/BalancerPoolToken.json
       eventHandlers:
@@ -234,7 +266,7 @@ templates:
       abi: MetaStablePool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolController.ts
       entities:
@@ -244,10 +276,10 @@ templates:
         - PoolToken
         - PriceRateProvider
       abis:
+        - name: WeightedPool # Necessary for Transfer handler
+          file: ./abis/WeightedPool.json
         - name: MetaStablePool
           file: ./abis/MetaStablePool.json
-        - name: WeightedPool
-          file: ./abis/WeightedPool.json
         - name: BalancerPoolToken
           file: ./abis/BalancerPoolToken.json
       eventHandlers:
@@ -260,13 +292,38 @@ templates:
         - event: PriceRateCacheUpdated(indexed address,uint256)
           handler: handlePriceRateCacheUpdated
   - kind: ethereum/contract
+    name: ConvergentCurvePool
+    network: kovan
+    source:
+      abi: ConvergentCurvePool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/poolController.ts
+      entities:
+        - Pool
+        - PoolShare
+        - Swap
+        - PoolToken
+      abis:
+        - name: WeightedPool
+          file: ./abis/WeightedPool.json
+        - name: ConvergentCurvePool
+          file: ./abis/ConvergentCurvePool.json
+        - name: BalancerPoolToken
+          file: ./abis/BalancerPoolToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+  - kind: ethereum/contract
     name: LiquidityBootstrappingPool
     network: kovan
     source:
       abi: LiquidityBootstrappingPool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mappings/poolController.ts
       entities:
@@ -289,3 +346,36 @@ templates:
           handler: handleSwapEnabledSet
         - event: GradualWeightUpdateScheduled(uint256,uint256,uint256[],uint256[])
           handler: handleGradualWeightUpdateScheduled
+  - kind: ethereum/contract
+    name: InvestmentPool
+    network: kovan
+    source:
+      abi: InvestmentPool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/poolController.ts
+      entities:
+        - Pool
+        - PoolShare
+        - Swap
+        - PoolToken
+        - GradualWeightUpdate
+      abis:
+        - name: WeightedPool
+          file: ./abis/WeightedPool.json
+        - name: InvestmentPool
+          file: ./abis/InvestmentPool.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: SwapFeePercentageChanged(uint256)
+          handler: handleSwapFeePercentageChange
+        - event: SwapEnabledSet(bool)
+          handler: handleSwapEnabledSet
+        - event: GradualWeightUpdateScheduled(uint256,uint256,uint256[],uint256[])
+          handler: handleGradualWeightUpdateScheduled
+        - event: ManagementFeePercentageChanged(uint256)
+          handler: handleManagementFeePercentageChanged
+ 

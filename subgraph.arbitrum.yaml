@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Vault
-    network: matic
+    network: arbitrum-one
     source:
       address: '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
       abi: Vault
-      startBlock: 15832990
+      startBlock: 222832
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -40,11 +40,11 @@ dataSources:
           handler: handleInternalBalanceChange
   - kind: ethereum/contract
     name: WeightedPoolFactory
-    network: matic
+    network: arbitrum-one
     source:
-      address: '0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9'
+      address: '0x7dFdEF5f355096603419239CE743BfaF1120312B'
       abi: WeightedPoolFactory
-      startBlock: 15832998
+      startBlock: 222863
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -67,11 +67,11 @@ dataSources:
           handler: handleNewWeightedPool
   - kind: ethereum/contract
     name: WeightedPool2TokenFactory
-    network: matic
+    network: arbitrum-one
     source:
-      address: '0xA5bf2ddF098bb0Ef6d120C98217dD6B141c74EE0'
+      address: '0xCF0a32Bbef8F064969F21f7e02328FB577382018'
       abi: WeightedPoolFactory
-      startBlock: 15869090
+      startBlock: 222864
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -94,11 +94,11 @@ dataSources:
           handler: handleNewWeightedPool
   - kind: ethereum/contract
     name: StablePoolFactory
-    network: matic
+    network: arbitrum-one
     source:
-      address: '0xc66Ba2B6595D3613CCab350C886aCE23866EDe24'
+      address: '0x2433477A10FC5d31B9513C638F19eE85CaED53Fd'
       abi: StablePoolFactory
-      startBlock: 16138679
+      startBlock: 222866
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -120,12 +120,41 @@ dataSources:
         - event: PoolCreated(indexed address)
           handler: handleNewStablePool
   - kind: ethereum/contract
-    name: LiquidityBootstrappingPoolFactory
-    network: matic
+    name: MetaStablePoolFactory
+    network: arbitrum-one
     source:
-      address: '0x751A0bC0e3f75b38e01Cf25bFCE7fF36DE1C87DE'
+      address: '0xEBFD5681977E38Af65A7487DC70B8221D089cCAD'
+      abi: MetaStablePoolFactory
+      startBlock: 222868
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/poolFactory.ts
+      entities:
+        - Balancer
+        - Pool
+      abis:
+        - name: Vault
+          file: ./abis/Vault.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: MetaStablePoolFactory
+          file: ./abis/MetaStablePoolFactory.json
+        - name: StablePool
+          file: ./abis/StablePool.json
+        - name: MetaStablePool
+          file: ./abis/MetaStablePool.json
+      eventHandlers:
+        - event: PoolCreated(indexed address)
+          handler: handleNewMetaStablePool
+  - kind: ethereum/contract
+    name: LiquidityBootstrappingPoolFactory
+    network: arbitrum-one
+    source:
+      address: '0x142B9666a0a3A30477b052962ddA81547E7029ab'
       abi: LiquidityBootstrappingPoolFactory
-      startBlock: 17116402
+      startBlock: 222870
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -150,11 +179,11 @@ dataSources:
           handler: handleNewLiquidityBootstrappingPool
   - kind: ethereum/contract
     name: InvestmentPoolFactory
-    network: matic
+    network: arbitrum-one
     source:
-      address: '0x0f7bb7ce7b6ed9366F9b6B910AdeFE72dC538193'
+      address: '0xaCd615B3705B9c880E4E7293f1030B34e57B4c1c'
       abi: InvestmentPoolFactory
-      startBlock: 19404118
+      startBlock: 1488052
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -180,7 +209,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: WeightedPool
-    network: matic
+    network: arbitrum-one
     source:
       abi: WeightedPool
     mapping:
@@ -205,7 +234,7 @@ templates:
           handler: handleSwapFeePercentageChange
   - kind: ethereum/contract
     name: StablePool
-    network: matic
+    network: arbitrum-one
     source:
       abi: StablePool
     mapping:
@@ -232,7 +261,7 @@ templates:
           handler: handleSwapFeePercentageChange
   - kind: ethereum/contract
     name: MetaStablePool
-    network: matic
+    network: arbitrum-one
     source:
       abi: MetaStablePool
     mapping:
@@ -264,7 +293,7 @@ templates:
           handler: handlePriceRateCacheUpdated
   - kind: ethereum/contract
     name: ConvergentCurvePool
-    network: matic
+    network: arbitrum-one
     source:
       abi: ConvergentCurvePool
     mapping:
@@ -289,7 +318,7 @@ templates:
           handler: handleTransfer
   - kind: ethereum/contract
     name: LiquidityBootstrappingPool
-    network: matic
+    network: arbitrum-one
     source:
       abi: LiquidityBootstrappingPool
     mapping:
@@ -319,7 +348,7 @@ templates:
           handler: handleGradualWeightUpdateScheduled
   - kind: ethereum/contract
     name: InvestmentPool
-    network: matic
+    network: arbitrum-one
     source:
       abi: InvestmentPool
     mapping:
