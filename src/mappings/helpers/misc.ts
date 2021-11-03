@@ -1,7 +1,22 @@
-import { BigDecimal, Address, BigInt } from '@graphprotocol/graph-ts';
-import { Pool, User, PoolToken, PoolShare, PoolSnapshot, PriceRateProvider, BalancerToken } from '../../types/schema';
+import { BigDecimal, Address, BigInt, ethereum } from '@graphprotocol/graph-ts';
+import {
+  Pool,
+  User,
+  PoolToken,
+  PoolShare,
+  PoolSnapshot,
+  PriceRateProvider,
+  Token,
+  TokenSnapshot,
+  TradePair,
+  TradePairSnapshot,
+  BalancerSnapshot,
+  Balancer,
+} from '../../types/schema';
 import { ERC20 } from '../../types/Vault/ERC20';
-import { USDC, ZERO_BD } from './constants';
+import { Swap as SwapEvent } from '../../types/Vault/Vault';
+import { ONE_BD, SWAP_IN, SWAP_OUT, ZERO, ZERO_BD } from './constants';
+import { getPoolAddress } from './pools';
 
 const DAY = 24 * 60 * 60;
 
@@ -27,17 +42,26 @@ export function getPoolShareId(poolControllerAddress: Address, lpAddress: Addres
   return poolControllerAddress.toHex().concat('-').concat(lpAddress.toHex());
 }
 
-export function createPoolShareEntity(pool: Pool, lpAddress: Address): void {
-  createUserEntity(lpAddress);
-  let poolControllerAddress = Address.fromString(pool.address.toHexString());
+export function getPoolShare(poolId: string, lpAddress: Address): PoolShare {
+  let poolShareId = getPoolShareId(getPoolAddress(poolId), lpAddress);
+  let poolShare = PoolShare.load(poolShareId);
+  if (poolShare == null) {
+    return createPoolShareEntity(poolId, lpAddress);
+  }
+  return poolShare;
+}
 
-  let id = getPoolShareId(poolControllerAddress, lpAddress);
+export function createPoolShareEntity(poolId: string, lpAddress: Address): PoolShare {
+  createUserEntity(lpAddress);
+
+  let id = getPoolShareId(getPoolAddress(poolId), lpAddress);
   let poolShare = new PoolShare(id);
 
   poolShare.userAddress = lpAddress.toHex();
-  poolShare.poolId = pool.id;
+  poolShare.poolId = poolId;
   poolShare.balance = ZERO_BD;
   poolShare.save();
+  return poolShare;
 }
 
 // pool entity when created
@@ -63,10 +87,6 @@ export function getPoolTokenId(poolId: string, tokenAddress: Address): string {
 
 export function loadPoolToken(poolId: string, tokenAddress: Address): PoolToken | null {
   return PoolToken.load(getPoolTokenId(poolId, tokenAddress));
-}
-
-export function loadBalancerToken(tokenAddress: Address): BalancerToken | null {
-  return BalancerToken.load(tokenAddress.toHexString());
 }
 
 export function createPoolTokenEntity(poolId: string, tokenAddress: Address): void {
@@ -104,6 +124,8 @@ export function createPoolTokenEntity(poolId: string, tokenAddress: Address): vo
   }
 
   let poolToken = new PoolToken(poolTokenId);
+  // ensures token entity is created
+  let _token = getToken(tokenAddress);
   poolToken.poolId = poolId;
   poolToken.address = tokenAddress.toHexString();
   poolToken.name = name;
@@ -111,24 +133,9 @@ export function createPoolTokenEntity(poolId: string, tokenAddress: Address): vo
   poolToken.decimals = decimals;
   poolToken.balance = ZERO_BD;
   poolToken.invested = ZERO_BD;
+  poolToken.priceRate = ONE_BD;
+  poolToken.token = _token.id;
   poolToken.save();
-
-  //create the token if it doesn't already exist
-  if (loadBalancerToken(tokenAddress) === null) {
-    let balancerToken = new BalancerToken(tokenAddress.toHexString());
-    balancerToken.symbol = symbol;
-    balancerToken.name = name;
-    balancerToken.decimals = decimals;
-    balancerToken.address = tokenAddress.toHexString();
-    balancerToken.balance = ZERO_BD;
-    balancerToken.totalSwapVolume = ZERO_BD;
-    balancerToken.totalSwapFee = ZERO_BD;
-    balancerToken.totalLiquidity = ZERO_BD;
-    balancerToken.price = ZERO_BD;
-    balancerToken.priceUsd = ZERO_BD;
-    balancerToken.pricingAsset = USDC;
-    balancerToken.save();
-  }
 }
 
 export function loadPriceRateProvider(poolId: string, tokenAddress: Address): PriceRateProvider | null {
@@ -154,6 +161,8 @@ export function createPoolSnapshot(poolId: string, timestamp: i32): void {
   let dayTimestamp = timestamp - (timestamp % DAY); // Todays Timestamp
 
   let pool = Pool.load(poolId);
+  if (pool == null) return;
+
   // Save pool snapshot
   let snapshotId = poolId + '-' + dayTimestamp.toString();
   let snapshot = new PoolSnapshot(snapshotId);
@@ -168,6 +177,7 @@ export function createPoolSnapshot(poolId: string, timestamp: i32): void {
     let token = tokens[i];
     let tokenAddress = Address.fromString(token.toHexString());
     let poolToken = loadPoolToken(poolId, tokenAddress);
+    if (poolToken == null) continue;
 
     amounts[i] = poolToken.balance;
   }
@@ -203,4 +213,167 @@ export function createUserEntity(address: Address): void {
     let user = new User(addressHex);
     user.save();
   }
+}
+
+export function createToken(tokenAddress: Address): Token {
+  let erc20token = ERC20.bind(tokenAddress);
+  let token = new Token(tokenAddress.toHexString());
+  let name = '';
+  let symbol = '';
+  let decimals = 0;
+
+  // attempt to retrieve erc20 values
+  let maybeName = erc20token.try_name();
+  let maybeSymbol = erc20token.try_symbol();
+  let maybeDecimals = erc20token.try_decimals();
+
+  if (!maybeName.reverted) name = maybeName.value;
+  if (!maybeSymbol.reverted) symbol = maybeSymbol.value;
+  if (!maybeDecimals.reverted) decimals = maybeDecimals.value;
+
+  token.name = name;
+  token.symbol = symbol;
+  token.decimals = decimals;
+  token.totalBalanceUSD = ZERO_BD;
+  token.totalBalanceNotional = ZERO_BD;
+  token.totalSwapCount = ZERO;
+  token.totalVolumeUSD = ZERO_BD;
+  token.totalVolumeNotional = ZERO_BD;
+  token.address = tokenAddress.toHexString();
+  token.save();
+  return token;
+}
+
+// this will create the token entity and populate
+// with erc20 values
+export function getToken(tokenAddress: Address): Token {
+  let token = Token.load(tokenAddress.toHexString());
+  if (token == null) {
+    token = createToken(tokenAddress);
+  }
+  return token;
+}
+
+export function getTokenSnapshot(tokenAddress: Address, event: ethereum.Event): TokenSnapshot {
+  let timestamp = event.block.timestamp.toI32();
+  let dayID = timestamp / 86400;
+  let id = tokenAddress.toHexString() + '-' + dayID.toString();
+  let dayData = TokenSnapshot.load(id);
+
+  if (dayData == null) {
+    let dayStartTimestamp = dayID * 86400;
+    let token = getToken(tokenAddress);
+    dayData = new TokenSnapshot(id);
+    dayData.timestamp = dayStartTimestamp;
+    dayData.totalSwapCount = token.totalSwapCount;
+    dayData.totalBalanceUSD = token.totalBalanceUSD;
+    dayData.totalBalanceNotional = token.totalBalanceNotional;
+    dayData.totalVolumeUSD = token.totalVolumeUSD;
+    dayData.totalVolumeNotional = token.totalVolumeNotional;
+    dayData.token = token.id;
+    dayData.save();
+  }
+
+  return dayData;
+}
+
+export function uptickSwapsForToken(tokenAddress: Address, event: ethereum.Event): void {
+  let token = getToken(tokenAddress);
+  // update the overall swap count for the token
+  token.totalSwapCount = token.totalSwapCount.plus(BigInt.fromI32(1));
+  token.save();
+
+  // update the snapshots
+  let snapshot = getTokenSnapshot(tokenAddress, event);
+  snapshot.totalSwapCount = token.totalSwapCount;
+  snapshot.save();
+}
+
+export function updateTokenBalances(
+  tokenAddress: Address,
+  usdBalance: BigDecimal,
+  notionalBalance: BigDecimal,
+  swapDirection: i32,
+  event: SwapEvent
+): void {
+  let token = getToken(tokenAddress);
+
+  if (swapDirection == SWAP_IN) {
+    token.totalBalanceNotional = token.totalBalanceNotional.plus(notionalBalance);
+    token.totalBalanceUSD = token.totalBalanceUSD.plus(usdBalance);
+  } else if (swapDirection == SWAP_OUT) {
+    token.totalBalanceNotional = token.totalBalanceNotional.minus(notionalBalance);
+    token.totalBalanceUSD = token.totalBalanceUSD.minus(usdBalance);
+  }
+
+  token.totalVolumeUSD = token.totalVolumeUSD.plus(usdBalance);
+  token.save();
+
+  let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
+  tokenSnapshot.totalBalanceNotional = token.totalBalanceNotional;
+  tokenSnapshot.totalBalanceUSD = token.totalBalanceUSD;
+  tokenSnapshot.totalVolumeNotional = token.totalVolumeNotional;
+  tokenSnapshot.totalVolumeUSD = token.totalVolumeUSD;
+  tokenSnapshot.save();
+}
+
+export function getTradePair(token0Address: Address, token1Address: Address): TradePair {
+  let sortedAddresses = new Array<string>(2);
+  sortedAddresses[0] = token0Address.toHexString();
+  sortedAddresses[1] = token1Address.toHexString();
+  sortedAddresses.sort();
+
+  let tradePairId = sortedAddresses[0] + '-' + sortedAddresses[1];
+  let tradePair = TradePair.load(tradePairId);
+  if (tradePair == null) {
+    tradePair = new TradePair(tradePairId);
+    tradePair.token0 = sortedAddresses[0];
+    tradePair.token1 = sortedAddresses[1];
+    tradePair.totalSwapFee = ZERO_BD;
+    tradePair.totalSwapVolume = ZERO_BD;
+    tradePair.save();
+  }
+  return tradePair;
+}
+
+export function getTradePairSnapshot(tradePairId: string, timestamp: i32): TradePairSnapshot {
+  let dayID = timestamp / 86400;
+  let id = tradePairId + '-' + dayID.toString();
+  let snapshot = TradePairSnapshot.load(id);
+  if (snapshot == null) {
+    let dayStartTimestamp = dayID * 86400;
+    let tradePair = TradePair.load(tradePairId);
+
+    snapshot = new TradePairSnapshot(id);
+    snapshot.pair = tradePairId;
+    snapshot.timestamp = dayStartTimestamp;
+    snapshot.totalSwapVolume = tradePair != null ? tradePair.totalSwapVolume : ZERO_BD;
+    snapshot.totalSwapFee = tradePair != null ? tradePair.totalSwapFee : ZERO_BD;
+    snapshot.save();
+  }
+  return snapshot;
+}
+
+export function getBalancerSnapshot(vaultId: string, timestamp: i32): BalancerSnapshot {
+  let dayID = timestamp / 86400;
+  let id = vaultId + '-' + dayID.toString();
+  let snapshot = BalancerSnapshot.load(id);
+
+  if (snapshot == null) {
+    let dayStartTimestamp = dayID * 86400;
+    snapshot = new BalancerSnapshot(id);
+    // we know that the vault should be created by this call
+    let vault = Balancer.load('2') as Balancer;
+    snapshot.poolCount = vault.poolCount;
+
+    snapshot.totalLiquidity = vault.totalLiquidity;
+    snapshot.totalSwapFee = vault.totalSwapFee;
+    snapshot.totalSwapVolume = vault.totalSwapVolume;
+    snapshot.totalSwapCount = vault.totalSwapCount;
+    snapshot.vault = vaultId;
+    snapshot.timestamp = dayStartTimestamp;
+    snapshot.save();
+  }
+
+  return snapshot;
 }

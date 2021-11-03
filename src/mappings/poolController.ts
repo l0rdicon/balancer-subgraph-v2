@@ -3,27 +3,28 @@ import { Transfer } from '../types/templates/WeightedPool/BalancerPoolToken';
 import { WeightedPool, SwapFeePercentageChanged } from '../types/templates/WeightedPool/WeightedPool';
 import {
   GradualWeightUpdateScheduled,
-  LiquidityBootstrappingPool,
   SwapEnabledSet,
 } from '../types/templates/LiquidityBootstrappingPool/LiquidityBootstrappingPool';
+import { ManagementFeePercentageChanged } from '../types/templates/InvestmentPool/InvestmentPool';
 import {
+  AmpUpdateStarted,
+  AmpUpdateStopped,
   MetaStablePool,
   PriceRateCacheUpdated,
   PriceRateProviderSet,
 } from '../types/templates/MetaStablePool/MetaStablePool';
-import { ConvergentCurvePool } from '../types/templates/ConvergentCurvePool/ConvergentCurvePool';
-import { PoolShare, Pool, PriceRateProvider, GradualWeightUpdate } from '../types/schema';
+import { Pool, PriceRateProvider, GradualWeightUpdate, AmpUpdate } from '../types/schema';
 
 import {
   tokenToDecimal,
-  createPoolShareEntity,
-  getPoolShareId,
   scaleDown,
   loadPoolToken,
   getPoolTokenId,
   loadPriceRateProvider,
+  getPoolShare,
 } from './helpers/misc';
 import { ONE_BD, ZERO_ADDRESS, ZERO_BD } from './helpers/constants';
+import { updateAmpFactor } from './helpers/stable';
 
 /************************************
  *********** SWAP ENABLED ***********
@@ -51,7 +52,7 @@ export function handleGradualWeightUpdateScheduled(event: GradualWeightUpdateSch
   let poolAddress = event.address;
 
   // TODO - refactor so pool -> poolId doesn't require call
-  let poolContract = LiquidityBootstrappingPool.bind(poolAddress);
+  let poolContract = WeightedPool.bind(poolAddress);
   let poolIdCall = poolContract.try_getPoolId();
   let poolId = poolIdCall.value;
 
@@ -64,6 +65,52 @@ export function handleGradualWeightUpdateScheduled(event: GradualWeightUpdateSch
   weightUpdate.startWeights = event.params.startWeights;
   weightUpdate.endWeights = event.params.endWeights;
   weightUpdate.save();
+}
+
+/************************************
+ *********** AMP UPDATES ************
+ ************************************/
+
+export function handleAmpUpdateStarted(event: AmpUpdateStarted): void {
+  let poolAddress = event.address;
+
+  // TODO - refactor so pool -> poolId doesn't require call
+  let poolContract = WeightedPool.bind(poolAddress);
+  let poolIdCall = poolContract.try_getPoolId();
+  let poolId = poolIdCall.value;
+
+  let id = event.transaction.hash.toHexString().concat(event.transactionLogIndex.toString());
+  let ampUpdate = new AmpUpdate(id);
+  ampUpdate.poolId = poolId.toHexString();
+  ampUpdate.scheduledTimestamp = event.block.timestamp.toI32();
+  ampUpdate.startTimestamp = event.params.startTime.toI32();
+  ampUpdate.endTimestamp = event.params.endTime.toI32();
+  ampUpdate.startAmp = event.params.startValue;
+  ampUpdate.endAmp = event.params.endValue;
+  ampUpdate.save();
+}
+
+export function handleAmpUpdateStopped(event: AmpUpdateStopped): void {
+  let poolAddress = event.address;
+
+  // TODO - refactor so pool -> poolId doesn't require call
+  let poolContract = WeightedPool.bind(poolAddress);
+  let poolIdCall = poolContract.try_getPoolId();
+  let poolId = poolIdCall.value.toHexString();
+
+  let id = event.transaction.hash.toHexString().concat(event.transactionLogIndex.toString());
+  let ampUpdate = new AmpUpdate(id);
+  ampUpdate.poolId = poolId;
+  ampUpdate.scheduledTimestamp = event.block.timestamp.toI32();
+  ampUpdate.startTimestamp = event.block.timestamp.toI32();
+  ampUpdate.endTimestamp = event.block.timestamp.toI32();
+  ampUpdate.startAmp = event.params.currentValue;
+  ampUpdate.endAmp = event.params.currentValue;
+  ampUpdate.save();
+
+  let pool = Pool.load(poolId);
+  if (pool == null) return;
+  updateAmpFactor(pool);
 }
 
 /************************************
@@ -81,6 +128,24 @@ export function handleSwapFeePercentageChange(event: SwapFeePercentageChanged): 
   let pool = Pool.load(poolId.toHexString()) as Pool;
 
   pool.swapFee = scaleDown(event.params.swapFeePercentage, 18);
+  pool.save();
+}
+
+/************************************
+ ********* MANAGEMENT FEES **********
+ ************************************/
+
+export function handleManagementFeePercentageChanged(event: ManagementFeePercentageChanged): void {
+  let poolAddress = event.address;
+
+  // TODO - refactor so pool -> poolId doesn't require call
+  let poolContract = WeightedPool.bind(poolAddress);
+  let poolIdCall = poolContract.try_getPoolId();
+  let poolId = poolIdCall.value;
+
+  let pool = Pool.load(poolId.toHexString()) as Pool;
+
+  pool.managementFee = scaleDown(event.params.managementFeePercentage, 18);
   pool.save();
 }
 
@@ -143,6 +208,7 @@ export function handlePriceRateCacheUpdated(event: PriceRateCacheUpdated): void 
 
   // Attach the rate onto the PoolToken entity as well
   let poolToken = loadPoolToken(poolId.toHexString(), event.params.token);
+  if (poolToken == null) return;
   poolToken.priceRate = provider.rate;
   poolToken.save();
 }
@@ -163,12 +229,10 @@ export function handleTransfer(event: Transfer): void {
   let isMint = event.params.from.toHex() == ZERO_ADDRESS;
   let isBurn = event.params.to.toHex() == ZERO_ADDRESS;
 
-  let poolShareFromId = getPoolShareId(poolAddress, event.params.from);
-  let poolShareFrom = PoolShare.load(poolShareFromId);
+  let poolShareFrom = getPoolShare(poolId.toHexString(), event.params.from);
   let poolShareFromBalance = poolShareFrom == null ? ZERO_BD : poolShareFrom.balance;
 
-  let poolShareToId = getPoolShareId(poolAddress, event.params.to);
-  let poolShareTo = PoolShare.load(poolShareToId);
+  let poolShareTo = getPoolShare(poolId.toHexString(), event.params.to);
   let poolShareToBalance = poolShareTo == null ? ZERO_BD : poolShareTo.balance;
 
   let pool = Pool.load(poolId.toHexString()) as Pool;
@@ -176,100 +240,17 @@ export function handleTransfer(event: Transfer): void {
   let BPT_DECIMALS = 18;
 
   if (isMint) {
-    if (poolShareTo == null) {
-      createPoolShareEntity(pool, event.params.to);
-      poolShareTo = PoolShare.load(poolShareToId);
-    }
     poolShareTo.balance = poolShareTo.balance.plus(tokenToDecimal(event.params.value, BPT_DECIMALS));
     poolShareTo.save();
     pool.totalShares = pool.totalShares.plus(tokenToDecimal(event.params.value, BPT_DECIMALS));
   } else if (isBurn) {
-    if (poolShareFrom == null) {
-      createPoolShareEntity(pool, event.params.from);
-      poolShareFrom = PoolShare.load(poolShareFromId);
-    }
     poolShareFrom.balance = poolShareFrom.balance.minus(tokenToDecimal(event.params.value, BPT_DECIMALS));
     poolShareFrom.save();
     pool.totalShares = pool.totalShares.minus(tokenToDecimal(event.params.value, BPT_DECIMALS));
   } else {
-    if (poolShareTo == null) {
-      createPoolShareEntity(pool, event.params.to);
-      poolShareTo = PoolShare.load(poolShareToId);
-    }
     poolShareTo.balance = poolShareTo.balance.plus(tokenToDecimal(event.params.value, BPT_DECIMALS));
     poolShareTo.save();
 
-    if (poolShareFrom == null) {
-      createPoolShareEntity(pool, event.params.from);
-      poolShareFrom = PoolShare.load(poolShareFromId);
-    }
-    poolShareFrom.balance = poolShareFrom.balance.minus(tokenToDecimal(event.params.value, BPT_DECIMALS));
-    poolShareFrom.save();
-  }
-
-  if (poolShareTo !== null && poolShareTo.balance.notEqual(ZERO_BD) && poolShareToBalance.equals(ZERO_BD)) {
-    pool.holdersCount = pool.holdersCount.plus(BigInt.fromI32(1));
-  }
-
-  if (poolShareFrom !== null && poolShareFrom.balance.equals(ZERO_BD) && poolShareFromBalance.notEqual(ZERO_BD)) {
-    pool.holdersCount = pool.holdersCount.minus(BigInt.fromI32(1));
-  }
-
-  pool.save();
-}
-
-export function handleTransferCCP(event: Transfer): void {
-  let poolAddress = event.address;
-
-  // TODO - refactor so pool -> poolId doesn't require call
-  let poolContract = ConvergentCurvePool.bind(poolAddress);
-
-  let poolIdCall = poolContract.try_getPoolId();
-  let poolId = poolIdCall.value;
-
-  let isMint = event.params.from.toHex() == ZERO_ADDRESS;
-  let isBurn = event.params.to.toHex() == ZERO_ADDRESS;
-
-  let poolShareFromId = getPoolShareId(poolAddress, event.params.from);
-  let poolShareFrom = PoolShare.load(poolShareFromId);
-  let poolShareFromBalance = poolShareFrom == null ? ZERO_BD : poolShareFrom.balance;
-
-  let poolShareToId = getPoolShareId(poolAddress, event.params.to);
-  let poolShareTo = PoolShare.load(poolShareToId);
-  let poolShareToBalance = poolShareTo == null ? ZERO_BD : poolShareTo.balance;
-
-  let pool = Pool.load(poolId.toHexString()) as Pool;
-
-  let BPT_DECIMALS = 18;
-
-  if (isMint) {
-    if (poolShareTo == null) {
-      createPoolShareEntity(pool, event.params.to);
-      poolShareTo = PoolShare.load(poolShareToId);
-    }
-    poolShareTo.balance = poolShareTo.balance.plus(tokenToDecimal(event.params.value, BPT_DECIMALS));
-    poolShareTo.save();
-    pool.totalShares = pool.totalShares.plus(tokenToDecimal(event.params.value, BPT_DECIMALS));
-  } else if (isBurn) {
-    if (poolShareFrom == null) {
-      createPoolShareEntity(pool, event.params.from);
-      poolShareFrom = PoolShare.load(poolShareFromId);
-    }
-    poolShareFrom.balance = poolShareFrom.balance.minus(tokenToDecimal(event.params.value, BPT_DECIMALS));
-    poolShareFrom.save();
-    pool.totalShares = pool.totalShares.minus(tokenToDecimal(event.params.value, BPT_DECIMALS));
-  } else {
-    if (poolShareTo == null) {
-      createPoolShareEntity(pool, event.params.to);
-      poolShareTo = PoolShare.load(poolShareToId);
-    }
-    poolShareTo.balance = poolShareTo.balance.plus(tokenToDecimal(event.params.value, BPT_DECIMALS));
-    poolShareTo.save();
-
-    if (poolShareFrom == null) {
-      createPoolShareEntity(pool, event.params.from);
-      poolShareFrom = PoolShare.load(poolShareFromId);
-    }
     poolShareFrom.balance = poolShareFrom.balance.minus(tokenToDecimal(event.params.value, BPT_DECIMALS));
     poolShareFrom.save();
   }

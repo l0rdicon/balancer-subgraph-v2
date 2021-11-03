@@ -1,5 +1,7 @@
-import { ONE_BD, ZERO_BD, VAULT_ADDRESS, PoolType } from './helpers/constants';
-import { newPoolEntity, createPoolTokenEntity, scaleDown, loadPoolToken } from './helpers/misc';
+import { ZERO_BD, VAULT_ADDRESS, ZERO } from './helpers/constants';
+import { PoolType } from './helpers/pools';
+
+import { newPoolEntity, createPoolTokenEntity, scaleDown, getBalancerSnapshot } from './helpers/misc';
 import { updatePoolWeights } from './helpers/weighted';
 
 import { BigInt, Address, Bytes } from '@graphprotocol/graph-ts';
@@ -12,16 +14,15 @@ import { StablePool as StablePoolTemplate } from '../types/templates';
 import { MetaStablePool as MetaStablePoolTemplate } from '../types/templates';
 import { ConvergentCurvePool as CCPoolTemplate } from '../types/templates';
 import { LiquidityBootstrappingPool as LiquidityBootstrappingPoolTemplate } from '../types/templates';
+import { InvestmentPool as InvestmentPoolTemplate } from '../types/templates';
 
 import { Vault } from '../types/Vault/Vault';
 import { WeightedPool } from '../types/templates/WeightedPool/WeightedPool';
 import { StablePool } from '../types/templates/StablePool/StablePool';
-import { MetaStablePool } from '../types/templates/MetaStablePool/MetaStablePool';
 import { ConvergentCurvePool } from '../types/templates/ConvergentCurvePool/ConvergentCurvePool';
 import { ERC20 } from '../types/Vault/ERC20';
-import { getAmp } from './helpers/stable';
 
-function createNewWeightedPool(event: PoolCreated): string {
+function createWeightedLikePool(event: PoolCreated, poolType: string): string {
   let poolAddress: Address = event.params.pool;
   let poolContract = WeightedPool.bind(poolAddress);
 
@@ -34,8 +35,8 @@ function createNewWeightedPool(event: PoolCreated): string {
   let ownerCall = poolContract.try_getOwner();
   let owner = ownerCall.value;
 
-  let pool = handleNewPool(event, poolId, swapFee) as Pool;
-  pool.poolType = PoolType.Weighted;
+  let pool = handleNewPool(event, poolId, swapFee);
+  pool.poolType = poolType;
   pool.factory = event.address;
   pool.owner = owner;
 
@@ -44,19 +45,11 @@ function createNewWeightedPool(event: PoolCreated): string {
 
   if (!tokensCall.reverted) {
     let tokens = tokensCall.value.value0;
-    let tokensList = pool.tokensList;
+    pool.tokensList = changetype<Bytes[]>(tokens);
 
     for (let i: i32 = 0; i < tokens.length; i++) {
-      let tokenAddress = tokens[i];
-
-      if (tokensList.indexOf(tokenAddress) == -1) {
-        tokensList.push(tokenAddress);
-      }
-
-      createPoolTokenEntity(poolId.toHexString(), tokenAddress);
+      createPoolTokenEntity(poolId.toHexString(), tokens[i]);
     }
-
-    pool.tokensList = tokensList;
   }
   pool.save();
 
@@ -67,21 +60,21 @@ function createNewWeightedPool(event: PoolCreated): string {
 }
 
 export function handleNewWeightedPool(event: PoolCreated): void {
-  createNewWeightedPool(event);
+  createWeightedLikePool(event, PoolType.Weighted);
   WeightedPoolTemplate.create(event.params.pool);
 }
 
 export function handleNewLiquidityBootstrappingPool(event: PoolCreated): void {
-  let poolId = createNewWeightedPool(event);
-
-  let pool = Pool.load(poolId);
-  pool.poolType = PoolType.LiquidityBootstrapping;
-  pool.save();
-
-  LiquidityBootstrappingPoolTemplate.create(pool.address as Address);
+  createWeightedLikePool(event, PoolType.LiquidityBootstrapping);
+  LiquidityBootstrappingPoolTemplate.create(event.params.pool);
 }
 
-export function handleNewStablePool(event: PoolCreated): void {
+export function handleNewInvestmentPool(event: PoolCreated): void {
+  createWeightedLikePool(event, PoolType.Investment);
+  InvestmentPoolTemplate.create(event.params.pool);
+}
+
+function createStableLikePool(event: PoolCreated, poolType: string): string {
   let poolAddress: Address = event.params.pool;
   let poolContract = StablePool.bind(poolAddress);
 
@@ -95,7 +88,7 @@ export function handleNewStablePool(event: PoolCreated): void {
   let owner = ownerCall.value;
 
   let pool = handleNewPool(event, poolId, swapFee);
-  pool.poolType = PoolType.Stable;
+  pool.poolType = poolType;
   pool.factory = event.address;
   pool.owner = owner;
 
@@ -104,60 +97,26 @@ export function handleNewStablePool(event: PoolCreated): void {
 
   if (!tokensCall.reverted) {
     let tokens = tokensCall.value.value0;
-    pool.tokensList = tokens as Bytes[];
+    pool.tokensList = changetype<Bytes[]>(tokens);
 
     for (let i: i32 = 0; i < tokens.length; i++) {
       createPoolTokenEntity(poolId.toHexString(), tokens[i]);
     }
   }
 
-  pool.amp = getAmp(poolContract);
-
   pool.save();
 
-  StablePoolTemplate.create(poolAddress);
+  return poolId.toHexString();
 }
 
-// TODO: deduplicate code with Stable Pools
+export function handleNewStablePool(event: PoolCreated): void {
+  createStableLikePool(event, PoolType.Stable);
+  StablePoolTemplate.create(event.params.pool);
+}
+
 export function handleNewMetaStablePool(event: PoolCreated): void {
-  let poolAddress: Address = event.params.pool;
-  let poolContract = MetaStablePool.bind(poolAddress);
-
-  let poolIdCall = poolContract.try_getPoolId();
-  let poolId = poolIdCall.value;
-
-  let swapFeeCall = poolContract.try_getSwapFeePercentage();
-  let swapFee = swapFeeCall.value;
-
-  let ownerCall = poolContract.try_getOwner();
-  let owner = ownerCall.value;
-
-  let pool = handleNewPool(event, poolId, swapFee);
-  pool.poolType = PoolType.MetaStable;
-  pool.factory = event.address;
-  pool.owner = owner;
-
-  let vaultContract = Vault.bind(VAULT_ADDRESS);
-  let tokensCall = vaultContract.try_getPoolTokens(poolId);
-
-  if (!tokensCall.reverted) {
-    let tokens = tokensCall.value.value0;
-    pool.tokensList = tokens as Bytes[];
-
-    for (let i: i32 = 0; i < tokens.length; i++) {
-      createPoolTokenEntity(poolId.toHexString(), tokens[i]);
-
-      let poolToken = loadPoolToken(poolId.toHexString(), tokens[i]);
-      poolToken.priceRate = ONE_BD;
-      poolToken.save();
-    }
-  }
-
-  pool.amp = getAmp(poolContract as StablePool);
-
-  pool.save();
-
-  MetaStablePoolTemplate.create(poolAddress);
+  createStableLikePool(event, PoolType.MetaStable);
+  MetaStablePoolTemplate.create(event.params.pool);
 }
 
 export function handleNewCCPPool(event: PoolCreated): void {
@@ -186,7 +145,7 @@ export function handleNewCCPPool(event: PoolCreated): void {
   // let ownerCall = poolContract.try_getOwner();
   // let owner = ownerCall.value;
 
-  let pool = handleNewPool(event, poolId, swapFee) as Pool;
+  let pool = handleNewPool(event, poolId, swapFee);
   pool.poolType = PoolType.Element;
   pool.factory = event.address;
   // pool.owner = owner;
@@ -200,19 +159,11 @@ export function handleNewCCPPool(event: PoolCreated): void {
 
   if (!tokensCall.reverted) {
     let tokens = tokensCall.value.value0;
-    let tokensList = pool.tokensList;
+    pool.tokensList = changetype<Bytes[]>(tokens);
 
     for (let i: i32 = 0; i < tokens.length; i++) {
-      let tokenAddress = tokens[i];
-
-      if (tokensList.indexOf(tokenAddress) == -1) {
-        tokensList.push(tokenAddress);
-      }
-
-      createPoolTokenEntity(poolId.toHexString(), tokenAddress);
+      createPoolTokenEntity(poolId.toHexString(), tokens[i]);
     }
-
-    pool.tokensList = tokensList;
   }
   pool.save();
 
@@ -221,7 +172,7 @@ export function handleNewCCPPool(event: PoolCreated): void {
 
 function findOrInitializeVault(): Balancer {
   let vault: Balancer | null = Balancer.load('2');
-  if (vault !== null) return vault as Balancer;
+  if (vault != null) return vault;
 
   // if no vault yet, set up blank initial
   vault = new Balancer('2');
@@ -229,10 +180,11 @@ function findOrInitializeVault(): Balancer {
   vault.totalLiquidity = ZERO_BD;
   vault.totalSwapVolume = ZERO_BD;
   vault.totalSwapFee = ZERO_BD;
-  return vault as Balancer;
+  vault.totalSwapCount = ZERO;
+  return vault;
 }
 
-function handleNewPool(event: PoolCreated, poolId: Bytes, swapFee: BigInt): Pool | null {
+function handleNewPool(event: PoolCreated, poolId: Bytes, swapFee: BigInt): Pool {
   let poolAddress: Address = event.params.pool;
 
   let pool = Pool.load(poolId.toHexString());
@@ -261,6 +213,10 @@ function handleNewPool(event: PoolCreated, poolId: Bytes, swapFee: BigInt): Pool
     let vault = findOrInitializeVault();
     vault.poolCount += 1;
     vault.save();
+
+    let vaultSnapshot = getBalancerSnapshot(vault.id, event.block.timestamp.toI32());
+    vaultSnapshot.poolCount += 1;
+    vaultSnapshot.save();
   }
 
   return pool;
