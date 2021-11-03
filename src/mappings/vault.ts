@@ -321,7 +321,6 @@ export function handleSwapEvent(event: SwapEvent): void {
 
   swap.timestamp = blockTimestamp;
   swap.tx = transactionHash;
-  swap.save();
 
   let swapValueUSD = ZERO_BD;
   if (isUSDStable(tokenOutAddress)) {
@@ -331,6 +330,9 @@ export function handleSwapEvent(event: SwapEvent): void {
   } else {
     swapValueUSD = valueInUSD(tokenAmountOut, tokenOutAddress) || valueInUSD(tokenAmountIn, tokenInAddress) || ZERO_BD;
   }
+
+  swap.value = swapValueUSD;
+  swap.save();
 
   // update pool swapsCount
   // let pool = Pool.load(poolId.toHex());
@@ -402,6 +404,7 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.pricingAsset = tokenInAddress;
 
     tokenPrice.price = tokenAmountIn.div(tokenAmountOut);
+    tokenPrice.priceUsd = swapValueUSD.div(tokenAmountOut);
     tokenPrice.save();
     updatePoolLiquidity(poolId.toHex(), block, tokenInAddress, blockTimestamp);
   }
@@ -417,6 +420,7 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.pricingAsset = tokenOutAddress;
 
     tokenPrice.price = tokenAmountOut.div(tokenAmountIn);
+    tokenPrice.priceUsd = swapValueUSD.div(tokenAmountIn);
     tokenPrice.save();
     updatePoolLiquidity(poolId.toHex(), block, tokenOutAddress, blockTimestamp);
   }

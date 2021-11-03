@@ -144,6 +144,7 @@ type Swap @entity {
   userAddress: User!
   timestamp: Int!
   tx: Bytes!
+  value: BigDecimal!
 }
 
 enum InvestType {
@@ -190,6 +191,7 @@ type TokenPrice @entity {
   price: BigDecimal!
   block: BigInt!
   timestamp: Int!
+  priceUsd: BigDecimal!
 }
 
 type Investment @entity {
