@@ -1,5 +1,5 @@
 import { BigDecimal, Address, BigInt } from '@graphprotocol/graph-ts';
-import { Pool, User, PoolToken, PoolShare, PoolSnapshot, PriceRateProvider } from '../../types/schema';
+import { Pool, User, PoolToken, PoolShare, PoolSnapshot, PriceRateProvider, Token } from '../../types/schema';
 import { ERC20 } from '../../types/Vault/ERC20';
 import { ZERO_BD } from './constants';
 
@@ -65,6 +65,10 @@ export function loadPoolToken(poolId: string, tokenAddress: Address): PoolToken 
   return PoolToken.load(getPoolTokenId(poolId, tokenAddress));
 }
 
+export function loadToken(tokenAddress: Address): Token | null {
+  return Token.load(tokenAddress.toHexString());
+}
+
 export function createPoolTokenEntity(poolId: string, tokenAddress: Address): void {
   let poolTokenId = getPoolTokenId(poolId, tokenAddress);
 
@@ -108,6 +112,17 @@ export function createPoolTokenEntity(poolId: string, tokenAddress: Address): vo
   poolToken.balance = ZERO_BD;
   poolToken.invested = ZERO_BD;
   poolToken.save();
+
+  //create the token if it doesn't already exist
+  if (loadToken(tokenAddress) === null) {
+    let token = new Token(tokenAddress.toHexString());
+    token.address = tokenAddress.toHexString();
+    token.name = name;
+    token.symbol = symbol;
+    token.decimals = decimals;
+    token.balance = ZERO_BD;
+    token.save();
+  }
 }
 
 export function loadPriceRateProvider(poolId: string, tokenAddress: Address): PriceRateProvider | null {

@@ -206,3 +206,18 @@ type PoolSnapshot @entity {
   swapFees: BigDecimal!
   timestamp: Int!
 }
+
+type Token @entity {
+  id: ID!
+  symbol: String
+  name: String
+  decimals: Int!
+  address: String!
+  balance: BigDecimal!
+  totalSwapVolume: BigDecimal!
+  totalSwapFee: BigDecimal!
+  totalLiquidity: BigDecimal!
+  price: BigDecimal!
+  priceUsd: BigDecimal!
+  pricingAsset: Bytes!
+}
