@@ -183,6 +183,7 @@ type TokenPrice @entity {
   amount: BigDecimal!
   pricingAsset: Bytes! # address of stable asset
   price: BigDecimal!
+  priceUsd: BigDecimal!
   block: BigInt!
   timestamp: BigInt!
 }

@@ -309,6 +309,7 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.pricingAsset = tokenInAddress;
 
     tokenPrice.price = tokenAmountIn.div(tokenAmountOut);
+    tokenPrice.priceUsd = swapValueUSD.div(tokenAmountIn);
     tokenPrice.save();
     updatePoolLiquidity(poolId.toHex(), block, tokenInAddress);
   }
@@ -324,6 +325,7 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.pricingAsset = tokenOutAddress;
 
     tokenPrice.price = tokenAmountOut.div(tokenAmountIn);
+    tokenPrice.priceUsd = swapValueUSD.div(tokenAmountOut);
     tokenPrice.save();
     updatePoolLiquidity(poolId.toHex(), block, tokenOutAddress);
   }
