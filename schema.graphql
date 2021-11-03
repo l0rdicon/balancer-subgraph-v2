@@ -207,7 +207,7 @@ type PoolSnapshot @entity {
   timestamp: Int!
 }
 
-type Token @entity {
+type BalancerToken @entity {
   id: ID!
   symbol: String
   name: String

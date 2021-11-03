@@ -1,7 +1,7 @@
 import { BigDecimal, Address, BigInt } from '@graphprotocol/graph-ts';
-import { Pool, User, PoolToken, PoolShare, PoolSnapshot, PriceRateProvider, Token } from '../../types/schema';
+import { Pool, User, PoolToken, PoolShare, PoolSnapshot, PriceRateProvider, BalancerToken } from '../../types/schema';
 import { ERC20 } from '../../types/Vault/ERC20';
-import { ZERO_BD } from './constants';
+import { USDC, ZERO_BD } from './constants';
 
 const DAY = 24 * 60 * 60;
 
@@ -65,8 +65,8 @@ export function loadPoolToken(poolId: string, tokenAddress: Address): PoolToken 
   return PoolToken.load(getPoolTokenId(poolId, tokenAddress));
 }
 
-export function loadToken(tokenAddress: Address): Token | null {
-  return Token.load(tokenAddress.toHexString());
+export function loadBalancerToken(tokenAddress: Address): BalancerToken | null {
+  return BalancerToken.load(tokenAddress.toHexString());
 }
 
 export function createPoolTokenEntity(poolId: string, tokenAddress: Address): void {
@@ -114,14 +114,20 @@ export function createPoolTokenEntity(poolId: string, tokenAddress: Address): vo
   poolToken.save();
 
   //create the token if it doesn't already exist
-  if (loadToken(tokenAddress) === null) {
-    let token = new Token(tokenAddress.toHexString());
-    token.address = tokenAddress.toHexString();
-    token.name = name;
-    token.symbol = symbol;
-    token.decimals = decimals;
-    token.balance = ZERO_BD;
-    token.save();
+  if (loadBalancerToken(tokenAddress) === null) {
+    let balancerToken = new BalancerToken(tokenAddress.toHexString());
+    balancerToken.symbol = symbol;
+    balancerToken.name = name;
+    balancerToken.decimals = decimals;
+    balancerToken.address = tokenAddress.toHexString();
+    balancerToken.balance = ZERO_BD;
+    balancerToken.totalSwapVolume = ZERO_BD;
+    balancerToken.totalSwapFee = ZERO_BD;
+    balancerToken.totalLiquidity = ZERO_BD;
+    balancerToken.price = ZERO_BD;
+    balancerToken.priceUsd = ZERO_BD;
+    balancerToken.pricingAsset = USDC;
+    balancerToken.save();
   }
 }
 
