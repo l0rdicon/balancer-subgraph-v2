@@ -135,6 +135,7 @@ type Swap @entity {
   tokenOutSym: String!
   tokenAmountIn: BigDecimal!
   tokenAmountOut: BigDecimal!
+  value: BigDecimal!
   poolId: Pool!
   userAddress: User!
   timestamp: Int!

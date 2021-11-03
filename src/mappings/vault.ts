@@ -261,10 +261,12 @@ export function handleSwapEvent(event: SwapEvent): void {
   let blockTimestamp = event.block.timestamp.toI32();
   swap.timestamp = blockTimestamp;
   swap.tx = transactionHash;
-  swap.save();
 
   let swapValueUSD =
     valueInUSD(tokenAmountOut, tokenOutAddress) || valueInUSD(tokenAmountIn, tokenInAddress) || ZERO_BD;
+
+  swap.value = swapValueUSD;
+  swap.save();
 
   // update pool swapsCount
   // let pool = Pool.load(poolId.toHex());
