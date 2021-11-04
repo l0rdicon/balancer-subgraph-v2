@@ -178,9 +178,11 @@ type PoolHistoricalLiquidity @entity {
   poolId: Pool!
   poolTotalShares: BigDecimal!
   poolLiquidity: BigDecimal! # total value, priced in the stable asset - ie USD
+  poolLiquidityUSD: BigDecimal!
   poolShareValue: BigDecimal!
   pricingAsset: Bytes! # address of stable asset
   block: BigInt!
+  timestamp: Int!
 }
 
 type TokenPrice @entity {
@@ -211,6 +213,12 @@ type PoolSnapshot @entity {
   swapVolume: BigDecimal!
   swapFees: BigDecimal!
   timestamp: Int!
+
+  totalSwapVolume: BigDecimal!
+  totalSwapFee: BigDecimal!
+  totalLiquidity: BigDecimal!
+  swapsCount: BigInt!
+  holdersCount: BigInt!
 }
 
 type Token @entity {

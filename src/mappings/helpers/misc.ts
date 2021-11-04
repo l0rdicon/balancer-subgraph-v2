@@ -188,6 +188,11 @@ export function createPoolSnapshot(poolId: string, timestamp: i32): void {
   snapshot.swapVolume = ZERO_BD;
   snapshot.swapFees = pool.totalSwapFee;
   snapshot.timestamp = dayTimestamp;
+  snapshot.totalLiquidity = pool.totalLiquidity;
+  snapshot.totalSwapFee = pool.totalSwapFee;
+  snapshot.totalSwapVolume = pool.totalSwapVolume;
+  snapshot.swapsCount = pool.swapsCount;
+  snapshot.holdersCount = pool.holdersCount;
   snapshot.save();
 }
 

@@ -86,8 +86,10 @@ export function updatePoolLiquidity(poolId: string, block: BigInt, pricingAsset:
   phl.poolId = poolId;
   phl.pricingAsset = pricingAsset;
   phl.block = block;
+  phl.timestamp = timestamp;
   phl.poolTotalShares = pool.totalShares;
   phl.poolLiquidity = poolValue;
+  phl.poolLiquidityUSD = newPoolLiquidity;
   phl.poolShareValue = pool.totalShares.gt(ZERO_BD) ? poolValue.div(pool.totalShares) : ZERO_BD;
   phl.save();
 
