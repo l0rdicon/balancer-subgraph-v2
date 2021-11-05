@@ -245,6 +245,11 @@ type TokenSnapshot @entity {
   totalVolumeUSD: BigDecimal! # amount of volume the token has moved on this day
   totalVolumeNotional: BigDecimal! # underyling asset volume
   totalSwapCount: BigInt!
+
+  priceOpenUSD: BigDecimal!
+  priceCloseUSD: BigDecimal!
+  priceLowUSD: BigDecimal!
+  priceHighUSD: BigDecimal!
 }
 
 type TradePair @entity {

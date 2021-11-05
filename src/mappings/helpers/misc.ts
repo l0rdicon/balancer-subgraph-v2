@@ -276,10 +276,36 @@ export function getTokenSnapshot(tokenAddress: Address, event: ethereum.Event): 
     dayData.totalVolumeUSD = token.totalVolumeUSD;
     dayData.totalVolumeNotional = token.totalVolumeNotional;
     dayData.token = token.id;
+    dayData.priceOpenUSD = ZERO_BD;
+    dayData.priceCloseUSD = ZERO_BD;
+    dayData.priceLowUSD = ZERO_BD;
+    dayData.priceHighUSD = ZERO_BD;
     dayData.save();
   }
 
   return dayData;
+}
+
+export function updateTokenSnapshotPrices(tokenAddress: Address, priceUSD: BigDecimal, event: ethereum.Event) {
+  let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
+
+  //if the opening price is 0, then this is the opening price
+  if (tokenSnapshot.priceOpenUSD.equals(ZERO_BD)) {
+    tokenSnapshot.priceOpenUSD = priceUSD;
+  }
+
+  if (tokenSnapshot.priceLowUSD.gt(priceUSD)) {
+    tokenSnapshot.priceLowUSD = priceUSD;
+  }
+
+  if (tokenSnapshot.priceHighUSD.lt(priceUSD)) {
+    tokenSnapshot.priceHighUSD = priceUSD;
+  }
+
+  //always update the closing price, last price set will be the final closing price
+  tokenSnapshot.priceCloseUSD = priceUSD;
+
+  tokenSnapshot.save();
 }
 
 export function uptickSwapsForToken(tokenAddress: Address, event: ethereum.Event): void {

@@ -22,6 +22,7 @@ import {
   getTradePairSnapshot,
   getTradePair,
   getBalancerSnapshot,
+  updateTokenSnapshotPrices,
 } from './helpers/misc';
 import { updatePoolWeights } from './helpers/weighted';
 import { isUSDStable, isPricingAsset, updatePoolLiquidity, valueInUSD } from './pricing';
@@ -414,7 +415,9 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.price = tokenAmountIn.div(tokenAmountOut);
     tokenPrice.priceUsd = swapValueUSD.div(tokenAmountOut);
     tokenPrice.save();
+
     updatePoolLiquidity(poolId.toHex(), block, tokenInAddress, blockTimestamp);
+    updateTokenSnapshotPrices(tokenOutAddress, tokenPrice.priceUsd, event);
   }
   if (isPricingAsset(tokenOutAddress)) {
     let tokenPriceId = getTokenPriceId(poolId.toHex(), tokenInAddress, tokenOutAddress, block);
@@ -430,7 +433,9 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.price = tokenAmountOut.div(tokenAmountIn);
     tokenPrice.priceUsd = swapValueUSD.div(tokenAmountIn);
     tokenPrice.save();
+
     updatePoolLiquidity(poolId.toHex(), block, tokenOutAddress, blockTimestamp);
+    updateTokenSnapshotPrices(tokenInAddress, tokenPrice.priceUsd, event);
   }
 
   createPoolSnapshot(poolId.toHexString(), blockTimestamp);
