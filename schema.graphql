@@ -160,6 +160,7 @@ type JoinExit @entity {
   pool: Pool!
   user: User!
   timestamp: Int!
+  value: BigDecimal!
   tx: Bytes!
 }
 
