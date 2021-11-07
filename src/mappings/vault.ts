@@ -15,18 +15,15 @@ import {
   createUserEntity,
   getTokenDecimals,
   loadPoolToken,
-  getToken,
-  getTokenSnapshot,
   uptickSwapsForToken,
   updateTokenBalances,
   getTradePairSnapshot,
   getTradePair,
   getBalancerSnapshot,
-  updateTokenSnapshotPrices,
 } from './helpers/misc';
 import { updatePoolWeights } from './helpers/weighted';
 import { isUSDStable, isPricingAsset, updatePoolLiquidity, valueInUSD } from './pricing';
-import { SWAP_IN, SWAP_OUT, ZERO, ZERO_BD } from './helpers/constants';
+import { TokenBalanceEvent, ZERO, ZERO_BD } from './helpers/constants';
 import { isStableLikePool, isVariableWeightPool } from './helpers/pools';
 import { updateAmpFactor } from './helpers/stable';
 
@@ -123,18 +120,10 @@ function handlePoolJoined(event: PoolBalanceChanged): void {
 
     join.value = join.value.plus(tokenAmountInUSD);
 
-    let token = getToken(tokenAddress);
-    token.totalBalanceNotional = token.totalBalanceNotional.plus(tokenAmountIn);
-    token.totalBalanceUSD = token.totalBalanceUSD.plus(tokenAmountInUSD);
-    token.save();
-
-    let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
-    tokenSnapshot.totalBalanceNotional = token.totalBalanceNotional;
-    tokenSnapshot.totalBalanceUSD = token.totalBalanceUSD;
-    tokenSnapshot.save();
-
     poolToken.balance = newAmount;
     poolToken.save();
+
+    updateTokenBalances(tokenAddress, tokenAmountIn, TokenBalanceEvent.JOIN, event);
   }
 
   join.save();
@@ -208,15 +197,7 @@ function handlePoolExited(event: PoolBalanceChanged): void {
     poolToken.balance = newAmount;
     poolToken.save();
 
-    let token = getToken(tokenAddress);
-    token.totalBalanceNotional = token.totalBalanceNotional.minus(tokenAmountOut);
-    token.totalBalanceUSD = token.totalBalanceUSD.minus(tokenAmountOutUSD);
-    token.save();
-
-    let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
-    tokenSnapshot.totalBalanceNotional = token.totalBalanceNotional;
-    tokenSnapshot.totalBalanceUSD = token.totalBalanceUSD;
-    tokenSnapshot.save();
+    updateTokenBalances(tokenAddress, tokenAmountOut, TokenBalanceEvent.EXIT, event);
   }
 
   exit.save();
@@ -380,11 +361,6 @@ export function handleSwapEvent(event: SwapEvent): void {
   uptickSwapsForToken(tokenInAddress, event);
   uptickSwapsForToken(tokenOutAddress, event);
 
-  // update volume and balances for the tokens
-  // updates token snapshots as well
-  updateTokenBalances(tokenInAddress, swapValueUSD, tokenAmountIn, SWAP_IN, event);
-  updateTokenBalances(tokenOutAddress, swapValueUSD, tokenAmountOut, SWAP_OUT, event);
-
   let tradePair = getTradePair(tokenInAddress, tokenOutAddress);
   tradePair.totalSwapVolume = tradePair.totalSwapVolume.plus(swapValueUSD);
   tradePair.totalSwapFee = tradePair.totalSwapFee.plus(swapFeesUSD);
@@ -413,11 +389,10 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.pricingAsset = tokenInAddress;
 
     tokenPrice.price = tokenAmountIn.div(tokenAmountOut);
-    tokenPrice.priceUsd = swapValueUSD.div(tokenAmountOut);
+    tokenPrice.priceUSD = swapValueUSD.div(tokenAmountOut);
     tokenPrice.save();
 
     updatePoolLiquidity(poolId.toHex(), block, tokenInAddress, blockTimestamp);
-    updateTokenSnapshotPrices(tokenOutAddress, tokenPrice.priceUsd, event);
   }
   if (isPricingAsset(tokenOutAddress)) {
     let tokenPriceId = getTokenPriceId(poolId.toHex(), tokenInAddress, tokenOutAddress, block);
@@ -431,13 +406,17 @@ export function handleSwapEvent(event: SwapEvent): void {
     tokenPrice.pricingAsset = tokenOutAddress;
 
     tokenPrice.price = tokenAmountOut.div(tokenAmountIn);
-    tokenPrice.priceUsd = swapValueUSD.div(tokenAmountIn);
+    tokenPrice.priceUSD = swapValueUSD.div(tokenAmountIn);
     tokenPrice.save();
 
     updatePoolLiquidity(poolId.toHex(), block, tokenOutAddress, blockTimestamp);
-    updateTokenSnapshotPrices(tokenInAddress, tokenPrice.priceUsd, event);
   }
 
   createPoolSnapshot(poolId.toHexString(), blockTimestamp);
   saveSwapToSnapshot(poolId.toHexString(), blockTimestamp, swapValueUSD, swapFeesUSD);
+
+  // update volume and balances for the tokens
+  // updates token snapshots as well
+  updateTokenBalances(tokenInAddress, tokenAmountIn, TokenBalanceEvent.SWAP_IN, event);
+  updateTokenBalances(tokenOutAddress, tokenAmountOut, TokenBalanceEvent.SWAP_OUT, event);
 }

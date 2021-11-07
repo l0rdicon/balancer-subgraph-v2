@@ -170,7 +170,7 @@ type LatestPrice @entity {
   pricingAsset: Bytes! # address of stable asset
   poolId: Pool! # last pool which set price
   price: BigDecimal! # all the latest prices
-  priceUsd: BigDecimal! # all the latest prices
+  priceUSD: BigDecimal! # all the latest prices
   block: BigInt! # last block that prices were updated
 }
 
@@ -195,7 +195,7 @@ type TokenPrice @entity {
   price: BigDecimal!
   block: BigInt!
   timestamp: Int!
-  priceUsd: BigDecimal!
+  priceUSD: BigDecimal!
 }
 
 type Investment @entity {
@@ -245,11 +245,6 @@ type TokenSnapshot @entity {
   totalVolumeUSD: BigDecimal! # amount of volume the token has moved on this day
   totalVolumeNotional: BigDecimal! # underyling asset volume
   totalSwapCount: BigInt!
-
-  priceOpenUSD: BigDecimal!
-  priceCloseUSD: BigDecimal!
-  priceLowUSD: BigDecimal!
-  priceHighUSD: BigDecimal!
 }
 
 type TradePair @entity {

@@ -1,21 +1,22 @@
-import { BigDecimal, Address, BigInt, ethereum } from '@graphprotocol/graph-ts';
+import { Address, BigDecimal, BigInt, ethereum } from '@graphprotocol/graph-ts';
 import {
+  Balancer,
+  BalancerSnapshot,
+  LatestPrice,
   Pool,
-  User,
-  PoolToken,
   PoolShare,
   PoolSnapshot,
+  PoolToken,
   PriceRateProvider,
   Token,
   TokenSnapshot,
   TradePair,
   TradePairSnapshot,
-  BalancerSnapshot,
-  Balancer,
+  User,
 } from '../../types/schema';
 import { ERC20 } from '../../types/Vault/ERC20';
 import { Swap as SwapEvent } from '../../types/Vault/Vault';
-import { ONE_BD, SWAP_IN, SWAP_OUT, ZERO, ZERO_BD } from './constants';
+import { ONE_BD, TokenBalanceEvent, ZERO, ZERO_BD } from './constants';
 import { getPoolAddress } from './pools';
 
 const DAY = 24 * 60 * 60;
@@ -276,36 +277,10 @@ export function getTokenSnapshot(tokenAddress: Address, event: ethereum.Event): 
     dayData.totalVolumeUSD = token.totalVolumeUSD;
     dayData.totalVolumeNotional = token.totalVolumeNotional;
     dayData.token = token.id;
-    dayData.priceOpenUSD = ZERO_BD;
-    dayData.priceCloseUSD = ZERO_BD;
-    dayData.priceLowUSD = ZERO_BD;
-    dayData.priceHighUSD = ZERO_BD;
     dayData.save();
   }
 
   return dayData;
-}
-
-export function updateTokenSnapshotPrices(tokenAddress: Address, priceUSD: BigDecimal, event: ethereum.Event) {
-  let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
-
-  //if the opening price is 0, then this is the opening price
-  if (tokenSnapshot.priceOpenUSD.equals(ZERO_BD)) {
-    tokenSnapshot.priceOpenUSD = priceUSD;
-  }
-
-  if (tokenSnapshot.priceLowUSD.gt(priceUSD)) {
-    tokenSnapshot.priceLowUSD = priceUSD;
-  }
-
-  if (tokenSnapshot.priceHighUSD.lt(priceUSD)) {
-    tokenSnapshot.priceHighUSD = priceUSD;
-  }
-
-  //always update the closing price, last price set will be the final closing price
-  tokenSnapshot.priceCloseUSD = priceUSD;
-
-  tokenSnapshot.save();
 }
 
 export function uptickSwapsForToken(tokenAddress: Address, event: ethereum.Event): void {
@@ -322,30 +297,39 @@ export function uptickSwapsForToken(tokenAddress: Address, event: ethereum.Event
 
 export function updateTokenBalances(
   tokenAddress: Address,
-  usdBalance: BigDecimal,
   notionalBalance: BigDecimal,
-  swapDirection: i32,
-  event: SwapEvent
+  tokenBalanceEvent: TokenBalanceEvent,
+  event: ethereum.Event
 ): void {
-  let token = getToken(tokenAddress);
+  const token = getToken(tokenAddress);
 
-  if (swapDirection == SWAP_IN) {
-    token.totalBalanceNotional = token.totalBalanceNotional.plus(notionalBalance);
-    token.totalBalanceUSD = token.totalBalanceUSD.plus(usdBalance);
-  } else if (swapDirection == SWAP_OUT) {
-    token.totalBalanceNotional = token.totalBalanceNotional.minus(notionalBalance);
-    token.totalBalanceUSD = token.totalBalanceUSD.minus(usdBalance);
+  switch (tokenBalanceEvent) {
+    case TokenBalanceEvent.SWAP_IN:
+    case TokenBalanceEvent.JOIN:
+      token.totalBalanceNotional = token.totalBalanceNotional.plus(notionalBalance);
+      break;
+    case TokenBalanceEvent.SWAP_OUT:
+    case TokenBalanceEvent.EXIT:
+      token.totalBalanceNotional = token.totalBalanceNotional.minus(notionalBalance);
+      break;
   }
 
-  token.totalVolumeUSD = token.totalVolumeUSD.plus(usdBalance);
-  token.save();
+  const latestPrice = token.latestPrice ? LatestPrice.load(token.latestPrice) : null;
 
-  let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
+  //reprice the total balance and volume in USD using the latest price
+  if (latestPrice !== null) {
+    token.totalBalanceUSD = token.totalBalanceNotional.times(latestPrice.priceUSD);
+    token.totalVolumeUSD = token.totalVolumeNotional.times(latestPrice.priceUSD);
+  }
+
+  const tokenSnapshot = getTokenSnapshot(tokenAddress, event);
   tokenSnapshot.totalBalanceNotional = token.totalBalanceNotional;
-  tokenSnapshot.totalBalanceUSD = token.totalBalanceUSD;
   tokenSnapshot.totalVolumeNotional = token.totalVolumeNotional;
+  tokenSnapshot.totalBalanceUSD = token.totalBalanceUSD;
   tokenSnapshot.totalVolumeUSD = token.totalVolumeUSD;
+
   tokenSnapshot.save();
+  token.save();
 }
 
 export function getTradePair(token0Address: Address, token1Address: Address): TradePair {
