@@ -301,7 +301,7 @@ export function updateTokenBalances(
   tokenBalanceEvent: TokenBalanceEvent,
   event: ethereum.Event
 ): void {
-  const token = getToken(tokenAddress);
+  let token = getToken(tokenAddress);
 
   switch (tokenBalanceEvent) {
     case TokenBalanceEvent.SWAP_IN:
@@ -314,7 +314,7 @@ export function updateTokenBalances(
       break;
   }
 
-  const latestPrice = token.latestPrice ? LatestPrice.load(token.latestPrice) : null;
+  let latestPrice = token.latestPrice ? LatestPrice.load(token.latestPrice!) : null;
 
   //reprice the total balance and volume in USD using the latest price
   if (latestPrice !== null) {
@@ -322,7 +322,7 @@ export function updateTokenBalances(
     token.totalVolumeUSD = token.totalVolumeNotional.times(latestPrice.priceUSD);
   }
 
-  const tokenSnapshot = getTokenSnapshot(tokenAddress, event);
+  let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
   tokenSnapshot.totalBalanceNotional = token.totalBalanceNotional;
   tokenSnapshot.totalVolumeNotional = token.totalVolumeNotional;
   tokenSnapshot.totalBalanceUSD = token.totalBalanceUSD;
