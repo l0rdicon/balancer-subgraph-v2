@@ -305,10 +305,16 @@ export function updateTokenBalances(
 
   switch (tokenBalanceEvent) {
     case TokenBalanceEvent.SWAP_IN:
+      token.totalBalanceNotional = token.totalBalanceNotional.plus(notionalBalance);
+      token.totalVolumeNotional = token.totalVolumeNotional.plus(notionalBalance);
+      break;
+    case TokenBalanceEvent.SWAP_OUT:
+      token.totalBalanceNotional = token.totalBalanceNotional.minus(notionalBalance);
+      token.totalVolumeNotional = token.totalVolumeNotional.plus(notionalBalance);
+      break;
     case TokenBalanceEvent.JOIN:
       token.totalBalanceNotional = token.totalBalanceNotional.plus(notionalBalance);
       break;
-    case TokenBalanceEvent.SWAP_OUT:
     case TokenBalanceEvent.EXIT:
       token.totalBalanceNotional = token.totalBalanceNotional.minus(notionalBalance);
       break;
