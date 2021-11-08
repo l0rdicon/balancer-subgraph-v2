@@ -320,12 +320,15 @@ export function updateTokenBalances(
       break;
   }
 
-  let latestPrice = token.latestPrice ? LatestPrice.load(token.latestPrice!) : null;
+  let latestPriceId = token.latestPrice;
 
-  //reprice the total balance and volume in USD using the latest price
-  if (latestPrice !== null) {
-    token.totalBalanceUSD = token.totalBalanceNotional.times(latestPrice.priceUSD);
-    token.totalVolumeUSD = token.totalVolumeNotional.times(latestPrice.priceUSD);
+  if (latestPriceId) {
+    let latestPrice = LatestPrice.load(latestPriceId);
+
+    if (latestPrice) {
+      token.totalBalanceUSD = token.totalBalanceNotional.times(latestPrice.priceUSD);
+      token.totalVolumeUSD = token.totalVolumeNotional.times(latestPrice.priceUSD);
+    }
   }
 
   let tokenSnapshot = getTokenSnapshot(tokenAddress, event);
