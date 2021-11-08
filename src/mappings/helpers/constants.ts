@@ -40,7 +40,7 @@ let vaultAddressByNetwork: AddressByNetwork = {
 };
 
 let wethAddressByNetwork: AddressByNetwork = {
-  mainnet: '0x74b23882a30290451A17c44f4F05243b6b58C76d',
+  mainnet: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', //WFTM
   kovan: '0xdFCeA9088c8A88A76FF74892C1457C17dfeef9C1',
   goerli: '0x9A1000D492d40bfccbc03f413A48F5B6516Ec0Fd',
   rinkeby: '0x80dD2B80FbcFB06505A301d732322e987380EcD6',
@@ -48,7 +48,7 @@ let wethAddressByNetwork: AddressByNetwork = {
   fuji: '0xfBD49f16d9fc6566aE41C20026DDCf3bADb6ba9F',
   arbitrum: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
   dev: '0x4CDDb3505Cf09ee0Fa0877061eB654839959B9cd',
-  fantom: '0x74b23882a30290451A17c44f4F05243b6b58C76d',
+  fantom: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', //WFTM
 };
 
 let wbtcAddressByNetwork: AddressByNetwork = {
@@ -88,7 +88,7 @@ let usdcAddressByNetwork: AddressByNetwork = {
 };
 
 let balAddressByNetwork: AddressByNetwork = {
-  mainnet: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', //WFTM
+  mainnet: '0xf24bcf4d1e507740041c9cfd2dddb29585adce1e', //BEETS
   kovan: '0x41286Bb1D3E870f3F750eB7E1C25d7E48c8A1Ac7',
   goerli: '0x78dEca24CBa286C0f8d56370f5406B48cFCE2f86',
   rinkeby: '0x8850Fd0C65d9B2B168153FAc6bAa269A566c4ef7',
@@ -96,7 +96,7 @@ let balAddressByNetwork: AddressByNetwork = {
   fuji: '0x9c2eE4065F5BcaF2220c6eA788829eEd80aec503',
   arbitrum: '0x040d1EdC9569d4Bab2D15287Dc5A4F10F56a56B8',
   dev: '0xf702269193081364E355f862f2CFbFCdC5DB738C',
-  fantom: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', //WFTM
+  fantom: '0xf24bcf4d1e507740041c9cfd2dddb29585adce1e', //BEETS
 };
 
 let daiAddressByNetwork: AddressByNetwork = {
@@ -141,5 +141,5 @@ export let USDC: Address = forNetwork(usdcAddressByNetwork, network);
 export let BAL: Address = forNetwork(balAddressByNetwork, network);
 export let DAI: Address = forNetwork(daiAddressByNetwork, network);
 
-export let PRICING_ASSETS: Address[] = [WETH, WBTC, USDC, DAI, BAL];
+export let PRICING_ASSETS: Address[] = [WETH, WBTC, USDC, DAI];
 export let USD_STABLE_ASSETS: Address[] = [USDC, DAI];
