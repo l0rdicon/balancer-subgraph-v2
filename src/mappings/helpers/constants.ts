@@ -141,5 +141,5 @@ export let USDC: Address = forNetwork(usdcAddressByNetwork, network);
 export let BAL: Address = forNetwork(balAddressByNetwork, network);
 export let DAI: Address = forNetwork(daiAddressByNetwork, network);
 
-export let PRICING_ASSETS: Address[] = [WETH, WBTC, USDC, DAI];
+export let PRICING_ASSETS: Address[] = [WETH, WBTC, USDC, DAI, BAL];
 export let USD_STABLE_ASSETS: Address[] = [USDC, DAI];
