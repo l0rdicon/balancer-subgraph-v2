@@ -23,7 +23,7 @@ import {
 } from './helpers/misc';
 import { updatePoolWeights } from './helpers/weighted';
 import { isUSDStable, isPricingAsset, updatePoolLiquidity, valueInUSD } from './pricing';
-import { ONE_BD, TokenBalanceEvent, ZERO, ZERO_BD } from './helpers/constants';
+import { MIN_VIABLE_LIQUIDITY, ONE_BD, TokenBalanceEvent, ZERO, ZERO_BD } from "./helpers/constants";
 import { isStableLikePool, isVariableWeightPool } from './helpers/pools';
 import { updateAmpFactor } from './helpers/stable';
 
@@ -384,7 +384,7 @@ export function handleSwapEvent(event: SwapEvent): void {
   let block = event.block.number;
   let tokenInWeight = poolTokenIn.weight;
   let tokenOutWeight = poolTokenOut.weight;
-  if (isPricingAsset(tokenInAddress)) {
+  if (isPricingAsset(tokenInAddress) && pool.totalLiquidity.gt(MIN_VIABLE_LIQUIDITY)) {
     let tokenPriceId = getTokenPriceId(poolId.toHex(), tokenOutAddress, tokenInAddress, block);
     let tokenPrice = new TokenPrice(tokenPriceId);
     //tokenPrice.poolTokenId = getPoolTokenId(poolId, tokenOutAddress);
@@ -399,11 +399,9 @@ export function handleSwapEvent(event: SwapEvent): void {
       // As the swap is with a WeightedPool, we can easily calculate the spot price between the two tokens
       // based on the pool's weights and updated balances after the swap.
       tokenPrice.price = newInAmount.div(tokenInWeight).div(newOutAmount.div(tokenOutWeight));
-      tokenPrice.priceUSD = swapValueUSD.div(tokenAmountOut);
     } else {
       // Otherwise we can get a simple measure of the price from the ratio of amount in vs amount out
       tokenPrice.price = tokenAmountIn.div(tokenAmountOut);
-      tokenPrice.priceUSD = swapValueUSD.div(tokenAmountOut);
     }
 
     tokenPrice.priceUSD = valueInUSD(tokenPrice.price, tokenInAddress);
@@ -412,7 +410,7 @@ export function handleSwapEvent(event: SwapEvent): void {
 
     updatePoolLiquidity(poolId.toHex(), block, tokenInAddress, blockTimestamp);
   }
-  if (isPricingAsset(tokenOutAddress)) {
+  if (isPricingAsset(tokenOutAddress) && pool.totalLiquidity.gt(MIN_VIABLE_LIQUIDITY)) {
     let tokenPriceId = getTokenPriceId(poolId.toHex(), tokenInAddress, tokenOutAddress, block);
     let tokenPrice = new TokenPrice(tokenPriceId);
     //tokenPrice.poolTokenId = getPoolTokenId(poolId, tokenInAddress);

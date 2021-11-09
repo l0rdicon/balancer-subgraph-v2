@@ -327,7 +327,7 @@ export function updateTokenBalances(
 
     if (latestPrice) {
       token.totalBalanceUSD = token.totalBalanceNotional.times(latestPrice.priceUSD);
-      token.totalVolumeUSD = token.totalVolumeNotional.times(latestPrice.priceUSD);
+      token.totalVolumeUSD = token.totalVolumeUSD.plus(notionalBalance.times(latestPrice.priceUSD));
     }
   }
 
