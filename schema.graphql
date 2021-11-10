@@ -282,6 +282,7 @@ type BatchSwap @entity {
   tokenAmountIn: BigDecimal
   tokenAmountOut: BigDecimal
   user: User!
+  valueUSD: BigDecimal!
   timestamp: Int!
   swaps: [Swap!]!
   routes: [BatchSwapRoute!]!
