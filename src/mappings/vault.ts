@@ -23,9 +23,10 @@ import {
 } from './helpers/misc';
 import { updatePoolWeights } from './helpers/weighted';
 import { isUSDStable, isPricingAsset, updatePoolLiquidity, valueInUSD } from './pricing';
-import { MIN_VIABLE_LIQUIDITY, ONE_BD, TokenBalanceEvent, ZERO, ZERO_BD } from "./helpers/constants";
+import { MIN_VIABLE_LIQUIDITY, ONE_BD, TokenBalanceEvent, ZERO, ZERO_BD } from './helpers/constants';
 import { isStableLikePool, isVariableWeightPool } from './helpers/pools';
 import { updateAmpFactor } from './helpers/stable';
+import { updateBatchSwap } from './helpers/batchSwap';
 
 /************************************
  ******** INTERNAL BALANCES *********
@@ -328,6 +329,9 @@ export function handleSwapEvent(event: SwapEvent): void {
   swap.tx = transactionHash;
 
   swap.save();
+
+  //create/update the batch swap that this swap belongs to
+  updateBatchSwap(swap);
 
   // update pool swapsCount
   // let pool = Pool.load(poolId.toHex());

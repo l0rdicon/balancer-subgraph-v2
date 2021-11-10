@@ -274,3 +274,27 @@ type BalancerSnapshot @entity {
   totalSwapVolume: BigDecimal!
   totalSwapFee: BigDecimal!
 }
+
+type BatchSwap @entity {
+  id: ID!
+  tokenIn: Token!
+  tokenOut: Token!
+  tokenAmountIn: BigDecimal
+  tokenAmountOut: BigDecimal
+  user: User!
+  timestamp: Int!
+  swaps: [Swap!]!
+  routes: [BatchSwapRoute!]!
+}
+
+type BatchSwapRoute @entity {
+  id: ID!
+  tokenIn: Token!
+  tokenOut: Token!
+  tokenAmountIn: BigDecimal!
+  tokenAmountOut: BigDecimal!
+  valueUSD: BigDecimal!
+  batchSwap: BatchSwap!
+  "Swaps in this route, properly ordered"
+  swaps: [Swap!]!
+}
