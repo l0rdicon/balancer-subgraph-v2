@@ -11,16 +11,18 @@ export function updateBatchSwap(swap: Swap): void {
   let swaps = getSwapsForBatchSwap(batchSwap);
   let startSwaps = getBatchStartSwaps(swaps);
   let valueUSD = ZERO_BD;
+  let batchSwapRoutes: string[] = [];
 
   for (let i = 0; i < startSwaps.length; i++) {
     let routeSwaps = getRouteSwapsForStartSwap(startSwaps[i], swaps);
     let batchSwapRoute = updateBatchSwapRoute(batchSwap, routeSwaps);
 
-    batchSwap.routes.push(batchSwapRoute.id);
+    batchSwapRoutes.push(batchSwapRoute.id);
     valueUSD = valueUSD.plus(batchSwapRoute.valueUSD);
   }
 
   batchSwap.valueUSD = valueUSD;
+  batchSwap.routes = batchSwapRoutes;
   batchSwap.save();
 }
 
@@ -30,16 +32,15 @@ function getBatchSwap(swap: Swap): BatchSwap {
   let batchSwap = BatchSwap.load(id);
 
   if (batchSwap) {
-    batchSwap.swaps.push(swap.id);
+    let swaps = batchSwap.swaps;
+    swaps.push(swap.id);
+
+    batchSwap.swaps = swaps;
 
     return batchSwap;
   }
 
   batchSwap = new BatchSwap(swap.tx.toHexString());
-  batchSwap.tokenIn = swap.tokenIn.toHexString();
-  batchSwap.tokenOut = swap.tokenOut.toHexString();
-  batchSwap.tokenAmountIn = swap.tokenAmountIn;
-  batchSwap.tokenAmountOut = swap.tokenAmountOut;
   batchSwap.user = swap.userAddress;
   batchSwap.valueUSD = ZERO_BD;
   batchSwap.timestamp = swap.timestamp;
@@ -58,7 +59,7 @@ function updateBatchSwapRoute(batchSwap: BatchSwap, routeSwaps: Swap[]): BatchSw
 
   if (!batchRoute) {
     batchRoute = new BatchSwapRoute(batchSwap.id + keyIn);
-    batchRoute.batchSwap = batchRoute.id;
+    batchRoute.batchSwap = batchSwap.id;
   }
 
   for (let i = 0; i < routeSwaps.length; i++) {
@@ -69,6 +70,7 @@ function updateBatchSwapRoute(batchSwap: BatchSwap, routeSwaps: Swap[]): BatchSw
   batchRoute.tokenOut = endSwap.tokenOut.toHexString();
   batchRoute.tokenAmountIn = startSwap.tokenAmountIn;
   batchRoute.tokenAmountOut = endSwap.tokenAmountOut;
+  batchRoute.timestamp = startSwap.timestamp;
   //TODO: it may be more accurate to take the average of each swap in the route
   batchRoute.valueUSD = startSwap.valueUSD;
   batchRoute.swaps = swapIds;
@@ -89,7 +91,7 @@ function getBatchStartSwaps(swaps: Swap[]): Swap[] {
 
   for (let i = 0; i < keysIn.length; i++) {
     //if the keyIn does not exist as a key out, then it is a start swap
-    if (!keysOut.includes(keysIn[i])) {
+    if (keysOut.indexOf(keysIn[i]) === -1) {
       startSwaps.push(swaps[i]);
     }
   }
@@ -126,7 +128,8 @@ function getNextSwapInRoute(current: Swap, swaps: Swap[]): Swap | null {
   let match: Swap | null = null;
 
   for (let i = 0; i < swaps.length; i++) {
-    if (getKeyInForSwap(swaps[i]) === keyOut) {
+    let keyIn = getKeyInForSwap(swaps[i]);
+    if (keyIn == keyOut) {
       match = swaps[i];
       break;
     }
