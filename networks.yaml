@@ -177,3 +177,26 @@ arbitrum:
   # ConvergentPoolFactory:
   #   address: ""
   #   startBlock: 0
+fuji:
+  network: fuji
+  Vault:
+    address: "0x4cB07C0aD2EF69736032C97911d530a96d7Fc039"
+    startBlock: 2480894
+  WeightedPoolFactory:
+    address: "0x4c4407B7Ad7DF956173e479A4f70D57F7df50aC4"
+    startBlock: 2480894
+  WeightedPool2TokenFactory:
+    address: "0x6CA5DEfACb733E69d4cEe03f8d008F274BC3d9dd"
+    startBlock: 2480894
+  StablePoolFactory:
+    address: "0x68ad353C5e8db136bFF82A980a93c4C3635582d0"
+    startBlock: 2480894
+  MetaStablePoolFactory:
+    address: "0x09d0737d6409B91FAebe77199C85302293699375"
+    startBlock: 2480894
+  LiquidityBootstrappingPoolFactory:
+    address: "0x79ba5546D945DD08998d639D2AB3CC522B29cbDb"
+    startBlock: 2480894
+  InvestmentPoolFactory:
+    address: "0x48767F9F868a4A7b86A90736632F6E44C2df7fa9"
+    startBlock: 2480894
